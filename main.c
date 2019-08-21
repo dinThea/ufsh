@@ -10,13 +10,14 @@ int main(){
     char line[500];
     char *params[5];
     char *delim = " ";
+    printf("[SHELL >]");
 
     while (control == 0) {
-        
+        printf ("$ ");
         fgets(line, 500, stdin);
         int param_index = 0;
         
-        char *pch;  
+        char *pch;
         pch = strtok(line, delim);
         
         while (pch != NULL) {
@@ -27,49 +28,46 @@ int main(){
             strcpy(params[param_index], pch);
             param_index++;
             pch = strtok(NULL, delim);
+            
         }
-
 
         free(pch);
 
         if (param_index != 0) {
-            
+
             char result[500];
+            int func_index = check_functions(params[0]);
 
             if (!strcmp(params[0], "EB")){
 
+                strcpy(result, "saindo");
                 control = 1;
 
-            } else if (!strcmp(params[0], "RT")) {
+            } else if (func_index != -1) {
 
-                RT(result, param_index, params);
+                interpreter(result, param_index, params, func_index);
 
-            }
-            else if (!strcmp(params[0], "CT")) {
+            } else if (!strcmp(params[0], "")) {
                 
-                CT(result, param_index, params);
+                strcpy(result, "");
 
-            } 
-            else if (!strcmp(params[0], "IR")) {
-
-                // IR(result, param_index, params);
-                
-
-            } else if (!strcmp(params[0], "RR")) {
-
-                
-
+            } else {                
+                strcpy(result, "syntax error");
             }
 
             printf ("%s\n", result);
+            if (!strcmp(result, "syntax error")){
+
+                control = 1;
+
+            }
 
             // fgetc(stdin);
 
         }
 
     }
-    // printf ("%d\n", argc);
-    // printf ("%s\n", argv[1]);
+
     return 0;
 
 }
