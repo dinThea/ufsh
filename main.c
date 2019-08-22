@@ -10,16 +10,15 @@ int main(){
     char line[500];
     char *params[5];
     char *delim = " ";
-    printf("[SHELL >]");
 
     while (control == 0) {
-        printf ("$ ");
+        printf("[SHELL >$]");
         fgets(line, 500, stdin); //Lê os comandos no terminalW
         int param_index = 0;
         
         char *pch;
-        pch = strtok(line, delim); //Enconstra o primeiro delimitador (" ") na string {line}
-        
+        pch = strtok(line, delim); //Encontra o primeiro delimitador (" ") na string {line}
+
         while (pch != NULL) {
 
             if (pch[strlen(pch)-1] == '\n') 

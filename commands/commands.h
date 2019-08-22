@@ -8,9 +8,10 @@ const char *FUNCTIONS[NUM_OPS];
 const int NUM_PARAMS[NUM_OPS];
 int (*functions[NUM_OPS]) (char *result, int num_args, char * argv[]);
 
+int valid_Fields(char * argv, int num_Index);
 int interpreter(char *result, int num_args, char * argv[], int func_index);
 int check_functions(char *op);
-void resultado_Campos(char argv[], char *result);
+void result_Fields(char argv[], char *result);
 int token(char *argv, char *field[MAX_FIELDS], char *delim);
 
 
