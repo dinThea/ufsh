@@ -10,8 +10,11 @@ int (*functions[NUM_OPS]) (char *result, int num_args, char * argv[]);
 
 int interpreter(char *result, int num_args, char * argv[], int func_index);
 int check_functions(char *op);
+void resultado_Campos(char argv[], char *result);
+int token(char *argv, char *field[MAX_FIELDS], char *delim);
 
-int token(char *argv, char *field[MAX_FIELDS]);
+
+
 //Manipulação das tabelas
 int CT(char *result, int num_args, char * argv[]);
 int RT(char *result, int num_args, char * argv[]);

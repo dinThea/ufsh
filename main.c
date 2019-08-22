@@ -14,22 +14,25 @@ int main(){
 
     while (control == 0) {
         printf ("$ ");
-        fgets(line, 500, stdin);
+        fgets(line, 500, stdin); //Lê os comandos no terminalW
         int param_index = 0;
         
         char *pch;
-        pch = strtok(line, delim);
+        pch = strtok(line, delim); //Enconstra o primeiro delimitador (" ") na string {line}
         
         while (pch != NULL) {
 
-            if (pch[strlen(pch)-1] == '\n') pch[strlen(pch)-1] = '\0';
-            params[param_index] = malloc(sizeof(char)*(strlen(pch)+1));
-            params[param_index][strlen(pch)] = '\0';
+            if (pch[strlen(pch)-1] == '\n') 
+                pch[strlen(pch)-1] = '\0';
+            
+            params[param_index] = malloc(sizeof(char)*(strlen(pch)+1)); // Alocação dinâmica dos parâmetros contidos na string {pch}
+            params[param_index][strlen(pch)] = '\0'; 
             strcpy(params[param_index], pch);
             param_index++;
             pch = strtok(NULL, delim);
             
         }
+        
 
         free(pch);
 

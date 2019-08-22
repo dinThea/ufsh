@@ -1,5 +1,10 @@
 {
     "files.associations": {
-        "commands.h": "c"
+        "*.c": "c",
+        "*.sv": "verilog",
+        "*.txt": "ignore",
+        "*.json": "json",
+        "commands.h": "c",
+        "regex.h": "c"
     }
 }
