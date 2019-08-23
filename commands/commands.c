@@ -97,7 +97,7 @@ int BR(char *result, int num_args, char * argv[]) {
     else if(!strcmp(argv[1], "U"))
         printf("Busca em %s pelo critério %s ", argv[2], argv[3]); // Exemplo: BR U TABELA BUSCA
     else
-        printf("sintax error");
+        printf("syntax error");
     return 0;
 }
 int AR(char *result, int num_args, char * argv[]) {
@@ -115,7 +115,7 @@ int CI(char *result, int num_args, char * argv[]){
     else if(!strcmp(argv[1], "H"))
         printf("OK");
     else
-        printf("sintax error");
+        printf("syntax error");
     return 0;
 }
 
@@ -137,10 +137,28 @@ int GI(char *result, int num_args, char * argv[]){
 @param      {func_index}    indice da função 
 */
 int interpreter(char *result, int num_args, char *argv[], int func_index) {
-    if (num_args > NUM_PARAMS[func_index] || num_args < NUM_PARAMS[func_index]) {
+    
+    char *last_param;
+    if (num_args > NUM_PARAMS[func_index]) {
+        
+        int size = 0;
+        for (int i = NUM_PARAMS[func_index]-1; i < num_args; i++) size+=strlen(argv[i]); 
+        last_param = (char *) malloc(sizeof(char)*(size+1));
+        for (int i = NUM_PARAMS[func_index]-1; i < num_args; i++) {
+            strcat(last_param, argv[i]);
+        }
+        argv[NUM_PARAMS[func_index]-1] = (char *) malloc(sizeof(char)*(size+1));
+        strcpy (argv[NUM_PARAMS[func_index]-1], last_param);
+        free(last_param);
+        printf ("\nLast param: %s\n", argv[NUM_PARAMS[func_index]-1]);
+        strcpy(result, " ");
+
+        (*functions[func_index]) (result, num_args, argv);
+        
+    } else if (num_args < NUM_PARAMS[func_index]) {
         strcpy(result, "número inválido de argumentos");
     } else if (!valid_Fields(argv[num_args - 1], NUM_FIELDS[func_index])) {
-        strcpy(result,"sintax Error");
+        strcpy(result,"syntax Error");
     } else {
         strcpy(result, " ");
 
