@@ -1,4 +1,4 @@
-#define NUM_OPS 8
+#define NUM_OPS 11
 #define MAX_FIELDS 30
 
 typedef struct t_tabela Tabela;
@@ -27,3 +27,9 @@ int IR(char *result, int num_args, char * argv[]);
 int BR(char *result, int num_args, char * argv[]);
 int AR(char *result, int num_args, char * argv[]);
 int RR(char *result, int num_args, char * argv[]);
+
+//Manuntenção de estruturas de indexação
+int CI(char *result, int num_args, char * argv[]);
+int RI(char *result, int num_args, char * argv[]);
+int GI(char *result, int num_args, char * argv[]);
+
