@@ -7,10 +7,10 @@
 
 #include "../commands/commands.h"
 
-const char *FUNCTIONS[NUM_OPS] = {"CT", "RT", "AT", "LT", "IR", "BR", "AR", "RR"};
-const int NUM_PARAMS[NUM_OPS] = {3, 2, 2, 1, 3, 4, 4, 2}; //quantidade mínima de parâmetros que cada comando deve ter(CT, RT, AT, LT, IR, BR, AR, RR)
-const int NUM_FIELDS[NUM_OPS] = {2, 1, 1, 0, 2, 2, 1, 1}; //quantidade mínima de compos que cada comando deve ter
-const int (*functions[NUM_OPS]) (char *result, int num_args, char * argv[]) = {CT, RT, AT, LT, IR, BR, AR, RR};
+const char *FUNCTIONS[NUM_OPS] = {"CT", "RT", "AT", "LT", "IR", "BR", "AR", "RR", "CI", "RI", "GI"};
+const int NUM_PARAMS[NUM_OPS] = {3, 2, 2, 1, 3, 4, 2, 2, 4, 3, 3}; //quantidade mínima de parâmetros que cada comando deve ter(CT, RT, AT, LT, IR, BR, AR, RR)
+const int NUM_FIELDS[NUM_OPS] = {2, 1, 0, 0, 1, 2, 1, 1, 0, 0, 0}; //quantidade mínima de campos que cada comando deve ter
+const int (*functions[NUM_OPS]) (char *result, int num_args, char * argv[]) = {CT, RT, AT, LT, IR, BR, AR, RR, CI, RI, GI};
 
 /*
 @BRIEF: Apaga o arquivo relativo a tabela e remove os dados de sua metabase
@@ -49,6 +49,7 @@ int CT(char *result, int num_args, char *argv[]) {
    
     result_Fields(argv[2], result);
 
+    return 0;
 }
 /*
 @BRIEF: Apresenta um resumo dos metadados da tabela indicada: arquivos, campos e índices existentens.
@@ -57,7 +58,9 @@ int CT(char *result, int num_args, char *argv[]) {
 @param {argv}   armazenamento dos argumentes reconhecidos pelo interpretador
 */
 int AT(char *result, int num_args, char * argv[]) {
-    
+    printf("RESUMO DOS METADADOS: ");
+    // result_Fields(argv[1], result);
+
     return 0;
 }
 /*
@@ -67,6 +70,8 @@ int AT(char *result, int num_args, char * argv[]) {
 @param {argv}   armazenamento dos argumentes reconhecidos pelo interpretador
 */
 int LT(char *result, int num_args, char * argv[]) {
+
+    printf("Lista das tabelas criadas: ");
     return 0;
 }
 
@@ -83,18 +88,47 @@ int IR(char *result, int num_args, char * argv[]) {
     printf("Com os Registros: \n");
 
     result_Fields(argv[2], result);
+    return 0;
 
 }
 int BR(char *result, int num_args, char * argv[]) {
+    if(!strcmp(argv[1], "N"))
+        printf("Registros da tabela %s", argv[2]); //BR N TABELA BUSCA
+    else if(!strcmp(argv[1], "U"))
+        printf("Busca em %s pelo critério %s ", argv[2], argv[3]); // Exemplo: BR U TABELA BUSCA
+    else
+        printf("sintax error");
     return 0;
 }
 int AR(char *result, int num_args, char * argv[]) {
+    printf("Registros da última busca: ");
     return 0;
 }
 int RR(char *result, int num_args, char * argv[]) {
+    printf("Tabela %s removida!", argv[1]);
     return 0;
 }
 
+int CI(char *result, int num_args, char * argv[]){
+     if(!strcmp(argv[1], "A")) //CI H CLIENTES CODIGO
+        printf("OK"); 
+    else if(!strcmp(argv[1], "H"))
+        printf("OK");
+    else
+        printf("sintax error");
+    return 0;
+}
+
+int RI(char *result, int num_args, char * argv[]){
+    //RI NOMETABELA CHAVE
+    printf("Indice com chave %s da tabela %s removido!!", argv[2],argv[1]);
+    return 0;
+}
+int GI(char *result, int num_args, char * argv[]){
+    //GI NOMETABELA CHAVE
+    printf("Indice com chave %s gerado!", argv[2]);
+    return 0;
+}
 /*
 @BRIEF  Verifica a quantidade de parâmetros, se forem válidos chama a função que correspode ao primeiro comando lido(CT, RT, AT ...)
 @param      {resul}     Resultado da análise
@@ -108,7 +142,10 @@ int interpreter(char *result, int num_args, char *argv[], int func_index) {
     } else if (!valid_Fields(argv[num_args - 1], NUM_FIELDS[func_index])) {
         strcpy(result,"sintax Error");
     } else {
+        strcpy(result, " ");
+
         (*functions[func_index]) (result, num_args, argv);
+
     }
 
     return 0;
