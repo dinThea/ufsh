@@ -1,67 +1,99 @@
-#include "table.h"
-#include <iostream>
+#include <vector>
+#include <map>
+#include <string>
+#include <variant>
+#include <fstream>
+#include <bits/stdc++.h>
+#include <boost/algorithm/string.hpp>
+#include "handlers.h"
 
-int RT(vector<string> args) {
+using namespace std;
 
-    cout << "Deletando tabela" << args[1] << endl;
+vector<string> split(string arg, string separator) {
+    
+    vector<string> splitted_input;
+    boost::split(splitted_input, arg, boost::is_any_of(separator));
 
-    int res = 0;
+    return splitted_input;
 
-    // operation
+}
 
-    if (!res) {
-        cout << "Deletado com sucesso" << endl;
+registry::registry(string arg, vector<string> types, vector<string> fields) {
+
+    vector<string> args = split(arg, ";");
+
+    if (!args.empty()) {
+        for (int i = 0; i < args.size(); i++) {
+            if (types[i].compare("INT")) {
+                this->row[fields[i]] = stoi(args[i]);                
+            } else if (types[i].compare("STR")) {
+                this->row[fields[i]] = args[i];                
+            } else if (types[i].compare("FLT")) {
+                this->row[fields[i]] = stof(args[i]);                
+            } else if (types[i].compare("BIN")) {
+                this->row[fields[i]] = (char)stoi(args[i]);            
+            }
+        }
+    }
+
+}
+
+map<string, variant<float, string, int, char>> registry::get_row() {
+
+    return this->row;
+
+}
+
+table::table(string nam) {
+
+    fstream file;
+    file.open("meta/" + nam, ios::binary);
+    if (file) {
+
     } else {
-        cout << "Falha deletando a tabela " << endl;          
+
     }
 
-    return 0;
+    this->name = nam;
 
 }
 
-int CT(vector<string> args) {
+table::~table() {
 
-    cout << "Criando tabela: " << args[1] << endl;
-    cout << "Com os campos: " << endl;
-   
-    // result_Fields(argv[2]);
-
-    return 0;
 }
 
-int AT(vector<string> args) {
-
-
-    return 0;
+string table::get_name() {
+    return this->name;
 }
 
-int LT(vector<string> args) {
+bool table::close(bool save) {
 
-    cout << "Lista das tabelas criadas: " << endl;
-    return 0;
 }
 
-table_worker::table_worker() {
-    
-    this->functions = new map<string, pfunc>; 
-    (*this->functions)["CT"] = CT;
-    (*this->functions)["RT"] = RT;
-    (*this->functions)["AT"] = AT;
-    (*this->functions)["LT"] = LT;
-    
+bool table::insert_one(string args) {
+
 }
 
-table_worker::~table_worker() {
-    
-    delete this->functions; 
-    
+bool table::save_to_file() {
+
 }
 
-int table_worker::run(vector<string> args) {
+bool table::show_last() {
 
-    if ((*this->functions).find(args[0]) != (*this->functions).end()) {
-        return (*(*this->functions)[args[0]])(args);
-    } else { 
-        return 1;
-    }
+}
+
+bool table::show() {
+
+}
+
+string table::query_one(string query) {
+
+}
+
+vector<string> table::query_many(string query) {
+
+}
+
+bool table::insert_field(string field) {
+
 }

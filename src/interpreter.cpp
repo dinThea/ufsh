@@ -3,8 +3,8 @@
 #include <iostream>
 #include <fstream>
 
-#include "registry.h"
-#include "table.h"
+#include "registry_worker.h"
+#include "table_worker.h"
 #include "interpreter.h"
 using namespace std;
 
@@ -53,10 +53,6 @@ vector<string> interpreter::read() { //lê comando do terminal
         }
     }
     
-    // for (vector<string>::iterator it = splitted_input.begin(); it != splitted_input.end(); it++)
-    //     cout << *it << " ";
-    // cout << endl;
-
     return splitted_input;
 
 }

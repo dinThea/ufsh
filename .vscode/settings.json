@@ -6,5 +6,6 @@
         "*.json": "json",
         "commands.h": "c",
         "regex.h": "c"
-    }
+    },
+    "C_Cpp.errorSquiggles": "Enabled"
 }
