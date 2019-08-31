@@ -5,7 +5,8 @@
 #include <fstream>
 #include <bits/stdc++.h>
 #include <boost/algorithm/string.hpp>
-#include "handlers.h"
+#include "table.h"
+#include "file.h"
 
 using namespace std;
 
@@ -46,15 +47,24 @@ map<string, variant<float, string, int, char>> registry::get_row() {
 
 table::table(string nam) {
 
-    fstream file;
-    file.open("meta/" + nam, ios::binary);
-    if (file) {
-
-    } else {
-
-    }
-
+    metafile _table("meta/tables.meta");
+    metafile _specific("meta/"+nam+".meta");
+    
     this->name = nam;
+
+}
+
+table::table(vector<string> nam) {
+
+    metafile _table("meta/tables.meta");
+
+    string input;
+    input = nam[1] + " " + nam[2];
+    _table.insert_line(input);
+
+    metafile _specific("meta/"+nam[1]+".meta");
+    
+    this->name = nam[1];
 
 }
 
@@ -63,18 +73,24 @@ table::~table() {
 }
 
 string table::get_name() {
+    
     return this->name;
+
 }
 
-bool table::close(bool save) {
+bool table::del() {
+    
+    metafile _table("meta/tables.meta");
+
+    _table.remove_line(this->name+" ");
+
+    remove(("meta/"+this->name+".meta").c_str());
+    
+    return true;
 
 }
 
 bool table::insert_one(string args) {
-
-}
-
-bool table::save_to_file() {
 
 }
 

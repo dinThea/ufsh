@@ -5,7 +5,9 @@
         "*.txt": "ignore",
         "*.json": "json",
         "commands.h": "c",
-        "regex.h": "c"
+        "regex.h": "c",
+        "vector": "cpp",
+        "map": "cpp"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

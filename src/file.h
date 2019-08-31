@@ -13,7 +13,8 @@ public:
     bool insert_line(string line);
     bool remove_line(string line);
 private:
-    fstream *_file;
+    string file_name;
+    ifstream *_file;
     static bool verify_file_existence(string file_path);
     bool verify_line_existence(string line);
 };

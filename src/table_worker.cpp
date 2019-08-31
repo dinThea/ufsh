@@ -7,7 +7,8 @@ int RT(vector<string> args) {
     cout << "Deletando tabela" << args[1] << endl;
 
     int res = 0;
-
+    table _table(args[1]);
+    _table.del();
     // operation
 
     if (!res) {
@@ -24,7 +25,7 @@ int CT(vector<string> args) {
 
     cout << "Criando tabela: " << args[1] << endl;
     cout << "Com os campos: " << endl;
-   
+    table _table(args);
     // result_Fields(argv[2]);
 
     return 0;

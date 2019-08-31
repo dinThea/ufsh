@@ -20,8 +20,9 @@ private:
 class table {
 public:
     table(string name);
+    table(vector<string> args);
     ~table();
-    bool close(bool save);
+    bool del();
     bool insert_one(string args);
     bool save_to_file();
     bool show_last();
