@@ -91,7 +91,10 @@ bool table::del() {
 }
 
 bool table::insert_one(string args) {
+    metafile _specific("meta/"+this->name+".meta");
+    _specific.insert_line(args);
 
+    return true;
 }
 
 bool table::show_last() {
@@ -103,11 +106,15 @@ bool table::show() {
 }
 
 string table::query_one(string query) {
-
+    metafile _specific("meta/"+this->name+".meta");
+    
+    return _specific.find_first(query);
 }
 
 vector<string> table::query_many(string query) {
-
+    metafile _specific("meta/"+this->name+".meta");
+    
+    return _specific.find_all(query);
 }
 
 bool table::insert_field(string field) {

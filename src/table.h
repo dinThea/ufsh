@@ -23,12 +23,12 @@ public:
     table(vector<string> args);
     ~table();
     bool del();
-    bool insert_one(string args);
+    bool insert_one(string args); //insere novo elemento da tabela no arquivo
     bool save_to_file();
     bool show_last();
     bool show();
-    string query_one(string query);
-    vector<string> query_many(string query);
+    string query_one(string query); //busca pela primeira ocorrência na tabela
+    vector<string> query_many(string query); //busca por todas as ocorrências na tabela
     string get_name();
 private:
     bool insert_field(string field);

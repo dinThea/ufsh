@@ -2,22 +2,22 @@
 #include "table.h"
 #include <iostream>
 
-int IR(vector<string> args, table tbl) {
+int IR(vector<string> args, table tbl) { //insere registro na tabela. EX: IR TABELA CAMPO_DE_DADOS
 
     cout << "Inserindo Registro na tabela: " << args[1] << endl;
     cout << "Com os Registros: " << args[2];
     
-    // table tbl(args[1]);
-    // tbl.insert_one(args[2]);
+     table tbl(args[1]);
+     tbl.insert_one(args[2]);
     // tbl.close();
 
     return 0;
 
 }
 
-int BR(vector<string> args, table tbl) {
+int BR(vector<string> args, table tbl) {//realiza busca na tabela
 
-    if(args[1].compare("N")) {
+    if(args[1].compare("N")) { //busca por todas as ocorrências na tabela
         cout << "Registros da tabela " << args[0] << endl; //BR N TABELA BUSCA
         // vector<string> result;
         // result = tbl.query_many(args[2]);
@@ -30,7 +30,7 @@ int BR(vector<string> args, table tbl) {
         //     }
         // }
     }
-    else if(args[1].compare("U")) {
+    else if(args[1].compare("U")) { //busca pela primeira ocorrência na tabela
         cout << "Busca em " << args[2] << " pelo critério " << args[3] << endl; // Exemplo: BR U TABELA BUSCA
         // string result;
         // result = tbl.query_one(args[2]);
@@ -54,7 +54,7 @@ int AR(vector<string> args, table tbl) {
     return 0;
 }
 
-int RR(vector<string> args, table tbl) {
+int RR(vector<string> args, table tbl) { //remove registro da tabela
     cout << "Registro " << args[1] << " removida!";
     return 0;
 }

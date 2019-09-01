@@ -2,7 +2,7 @@
 #include "table.h"
 #include <iostream>
 
-int RT(vector<string> args) {
+int RT(vector<string> args) { //remove tabela. EX: RT CLIENTES
 
     cout << "Deletando tabela" << args[1] << endl;
 
@@ -21,7 +21,7 @@ int RT(vector<string> args) {
 
 }
 
-int CT(vector<string> args) {
+int CT(vector<string> args) { //cria tabela. EX: CT TABELA CAMPO_DE_DADOS
 
     cout << "Criando tabela: " << args[1] << endl;
     cout << "Com os campos: " << endl;
@@ -31,15 +31,18 @@ int CT(vector<string> args) {
     return 0;
 }
 
-int AT(vector<string> args) {
-
+int AT(vector<string> args) { //lista metadados de uma tabela. EX: AT CLIENTES
+     metafile m_table("meta/tables.meta");
+     metadata_table.show_metadata(args[1]);   
 
     return 0;
 }
 
-int LT(vector<string> args) {
-
+int LT(vector<string> args) { //lista todas as tabelas existentes. EX: LT
     cout << "Lista das tabelas criadas: " << endl;
+    metafile metadata_table("meta/tables.meta");
+    _table.show();
+    
     return 0;
 }
 

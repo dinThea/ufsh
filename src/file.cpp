@@ -21,7 +21,7 @@ metafile::~metafile() {
     delete this->_file;
 }
 
-bool metafile::insert_line(string line) {
+bool metafile::insert_line(string line) { 
     ofstream file;
     file.open(file_name, ios_base::app);
     file << line << '\n';
@@ -43,7 +43,7 @@ bool metafile::insert_line(string line) {
 //     return "";
 // }
 
-bool metafile::remove_line(string query) {
+bool metafile::remove_line(string query) { 
 
     ofstream _new;
     _new.open("meta/temp.meta");
@@ -62,7 +62,7 @@ bool metafile::remove_line(string query) {
 
 }
 
-bool metafile::verify_file_existence(string file_path) {
+bool metafile::verify_file_existence(string file_path) { 
     
     ifstream test;
     test.open(file_path);
@@ -70,3 +70,62 @@ bool metafile::verify_file_existence(string file_path) {
     return !test.good();
 
 }
+
+bool metafile::show_metadata(string query) { 
+    (*this->file).seekg(0);
+    string line;
+    isstringstream iss;
+    vector<string> splitted_input;
+    bool found=false;
+    while ((getline((*this->file), line)) && (!found)) { //enquanto há linhas para serem lidas e não achou a tabela
+        if (line.find(query)) {
+            found=true;
+            boost::split(splitted_input, line, boost::is_any_of(":; ")); //separa os campos considerando os separadores
+            cout<<"Tabela : "<<splitted_input[0]<<endl;
+            cout<<"Campos : "<<endl;
+            for(int i=1;i<splitted_input.size();i+=2){ //enquanto tiver campos a serem mostrados
+                cout<<splitted_input[i]<<" "<<splitted_input[i+1]<<endl;
+            }
+        }
+    }
+    return found;
+}
+
+void metafile::show() { 
+    (*this->file).seekg(0);
+    string line;
+    isstringstream iss;
+    vector<string> splitted_input;
+    while ((getline((*this->file), line))) { //enquanto há linhas para serem lidas
+            boost::split(splitted_input, line, boost::is_any_of(" ")); //separa a linha para pegar o nome da tabela
+            cout<<"Tabela : "<<splitted_input[0]<<endl;
+    }
+}
+
+string metafile::find_first(string query){ 
+    (*this->file).seekg(0);
+    string line;
+    bool found;
+    while ((getline((*this->file), line)) && (!found)) {
+        if (line.find(query)) {
+            found=true;
+            }
+        }
+    
+    return line;
+    }
+
+string metafile::find_all(string query){ 
+    (*this->file).seekg(0);
+    string line;
+    vector<string> result;
+    bool found;
+    while ((getline((*this->file), line)) && (!found)) {
+        if (line.find(query)) {
+            found=true;
+            result.push_back(line);
+            }
+        }
+    
+    return result;
+    }
