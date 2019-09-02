@@ -9,7 +9,7 @@ int IR(vector<string> args, table tbl) { //insere registro na tabela. EX: IR TAB
     
     //table tbl(args[1]);
     //tbl.insert_one(args[2]);
-    // tbl.close();
+    //tbl.close();
 
     return 0;
 

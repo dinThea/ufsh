@@ -80,14 +80,16 @@ bool metafile::show_metadata(string query) {
     istringstream iss;
     vector<string> splitted_input;
     bool found=false;
-    while ((getline((*this->_file), line)) && (!found)) { //enquanto há linhas para serem lidas e não achou a tabela
-        if (line.find(query)) {
-            found=true;
-            boost::split(splitted_input, line, boost::is_any_of(":; ")); //separa os campos considerando os separadores
+    while ((!(*this->_file).eof()) && (!found)) { //enquanto há linhas para serem lidas e não achou a tabela
+        getline((*this->_file), line);
+        boost::split(splitted_input, line, boost::is_any_of("; ")); //separa os campos considerando os separadores
+        if(!splitted_input[0].compare(query)){
+            found =true;
             cout<<"Tabela : "<<splitted_input[0]<<endl;
             cout<<"Campos : "<<endl;
-            for(int i=1;i<splitted_input.size();i+=2){ //enquanto tiver campos a serem mostrados
-                cout<<splitted_input[i]<<" "<<splitted_input[i+1]<<endl;
+            for(int i=1;i<splitted_input.size();i++){ //enquanto tiver campos a serem mostrados
+                cout<<splitted_input[i]<<endl;
+            
             }
         }
     }
@@ -109,7 +111,8 @@ string metafile::find_first(string query){
     (*this->_file).seekg(0);
     string line;
     bool found;
-    while ((getline((*this->_file), line)) && (!found)) {
+    while (!(*this->_file.eof()) && (!found)) {
+        getline((*this->_file), line)
         if (line.find(query)) {
             found=true;
             }
@@ -123,7 +126,8 @@ vector<string> metafile::find_all(string query){
     string line;
     vector<string> result;
     bool found;
-    while ((getline((*this->_file), line)) && (!found)) {
+   while (!(*this->_file.eof()) && (!found)) {
+        getline((*this->_file), line)
         if (line.find(query)) {
             found=true;
             result.push_back(line);
