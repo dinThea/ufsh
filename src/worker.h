@@ -12,7 +12,7 @@ typedef int (*pfunc)(vector<string> arg, table tbl);
 
 class worker {
 public:
-    virtual int run(vector<string> ) { cout << "worker";  return 0; }
+    virtual int run(vector<string> arg) { cout << "worker";  return 0; }
 };
 
 #endif

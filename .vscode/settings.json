@@ -9,10 +9,7 @@
         "vector": "cpp",
         "map": "cpp",
         "*.tcc": "cpp",
-        "fstream": "cpp",
-        "iostream": "cpp",
-        "iosfwd": "cpp",
-        "sstream": "cpp"
+        "ostream": "cpp"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

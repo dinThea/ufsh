@@ -19,7 +19,7 @@ private:
 
 class table {
 public:
-    table(string name);
+    table(string name, bool create_file=true);
     table(vector<string> args);
     ~table();
     bool del();

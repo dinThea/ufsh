@@ -22,9 +22,9 @@ vector<string> split(string arg, string separator) {
 registry::registry(string arg, vector<string> types, vector<string> fields) {
 
     vector<string> args = split(arg, ";");
-    int size = args.size();
+
     if (!args.empty()) {
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < args.size(); i++) {
             if (types[i].compare("INT")) {
                 this->row[fields[i]] = stoi(args[i]);                
             } else if (types[i].compare("STR")) {
@@ -45,35 +45,33 @@ map<string, variant<float, string, int, char>> registry::get_row() {
 
 }
 
-// table::table(string nam) {
+table::table(string nam, bool create_file) {
 
-//     metafile _table("meta/tables.meta");
-//     metafile _specific("meta/"+nam+".meta");
-    
-//     this->name = nam;
+    metafile _table("meta/tables.meta");
+    if (create_file) metafile _specific("meta/"+nam+".meta");
+    this->name = nam;
 
-// }
+}
 
-table::table(string nam) {
+table::table(vector<string> nam) {
 
-    boost::split(this->fields, nam, boost::is_any_of(";"));
+    vector<string> fields;
+    boost::split(fields, nam[2], boost::is_any_of(";"));
 
-    // int fields_size = this->fields.size();
-    
-    for (vector<string>::iterator it = this->fields.begin(); it != this->fields.end(); it ++) {
+    for (vector<string>::iterator it = fields.begin(); it != fields.end(); it ++) {
         vector<string> type_name;
         boost::split(type_name, *it, boost::is_any_of(":"));
-        //this->type_fields.push_back(type_name[0]);
-        //this->fields.push_back(type_name[1]);
+        this->type_fields.push_back(type_name[0]);
+        this->fields.push_back(type_name[1]);
     }
-
 
     metafile _table("meta/tables.meta");
 
     string input;
     input = nam[1] + " " + nam[2];
     _table.insert_line(input);
-    metafile _specific(string("meta/" + nam[1] + string (".meta")));
+
+    metafile _specific("meta/"+nam[1]+".meta");
     
     this->name = nam[1];
 
@@ -91,13 +89,12 @@ string table::get_name() {
 
 bool table::del() {
     
-    metafile _table("meta/tables.meta");
+    metafile _tables("meta/tables.meta");
 
-    _table.remove_line(this->name+" ");
-
-    remove(("meta/"+this->name+".meta").c_str());
+    bool result = _tables.remove_line(this->name+" ");
     
-    return true;
+    remove(("meta/"+this->name+".meta").c_str());
+    return result;
 
 }
 
@@ -122,11 +119,11 @@ string table::query_one(string query) {
     return _specific.find_first(query);
 }
 
-// vector<string> table::query_many(string query) {
-//     metafile _specific("meta/"+this->name+".meta");
+vector<string> table::query_many(string query) {
+    metafile _specific("meta/"+this->name+".meta");
     
-//     return _specific.find_all(query);
-// }
+    return _specific.find_all(query);
+}
 
 // bool table::insert_field(string field) {
 //     return true;

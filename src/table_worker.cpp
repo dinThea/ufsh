@@ -7,34 +7,35 @@ int RT(vector<string> args) { //remove tabela. EX: RT CLIENTES
 
     cout << "Deletando tabela " << args[1] << endl;
 
-    int res = 0;
-    table _table(args[1]);
-    _table.del();
-    // operation
+    table _table(args[1], false);
+    bool res = _table.del();
 
-    if (!res) {
+    cout << "meta/"+args[1]+".meta" << endl;
+
+    if (res) {
         cout << "Deletado com sucesso" << endl;
     } else {
-        cout << "Falha deletando a tabela " << endl;          
+        cout << "Falha deletando a tabela " << endl;
+        return 1;          
     }
 
     return 0;
 
 }
-
 int CT(vector<string> args) { //cria tabela. EX: CT TABELA CAMPO_DE_DADOS
 
     cout << "Criando tabela: " << args[1] << endl;
-    cout << "Com os campos: "<< args[2] << endl;
-    table _table(args[2]);
+    cout << "Com os campos: " << endl;
+    table _table(args);
     // result_Fields(argv[2]);
 
     return 0;
 }
 
 int AT(vector<string> args) { //lista metadados de uma tabela. EX: AT CLIENTES
-     metafile m_table("meta/tables.meta");
-     m_table.show_metadata(args[1]);   
+    
+    metafile m_table("meta/tables.meta");
+    m_table.show_metadata(args[1]);   
 
     return 0;
 }
