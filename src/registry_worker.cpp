@@ -7,8 +7,8 @@ int IR(vector<string> args, table tbl) { //insere registro na tabela. EX: IR TAB
     cout << "Inserindo Registro na tabela: " << args[1] << endl;
     cout << "Com os Registros: " << args[2];
     
-     table tbl(args[1]);
-     tbl.insert_one(args[2]);
+    //  table tbl(args[1]);
+    //  tbl.insert_one(args[2]);
     // tbl.close();
 
     return 0;
