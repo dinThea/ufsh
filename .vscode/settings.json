@@ -8,7 +8,8 @@
         "regex.h": "c",
         "vector": "cpp",
         "map": "cpp",
-        "*.tcc": "cpp"
+        "*.tcc": "cpp",
+        "ostream": "cpp"
     },
     "C_Cpp.errorSquiggles": "Enabled"
 }

@@ -74,7 +74,7 @@ bool interpreter::run_all(vector<string> args) {
     if (args[0].compare("EB")) {
         for (list<worker*>::iterator it=(workers->begin()); it != (workers->end()); it++) {
             
-            int ret = 1;
+            int ret = 2;
 
             worker *wk = *it; 
             table_worker *tw = dynamic_cast<table_worker*>(wk);
@@ -83,10 +83,10 @@ bool interpreter::run_all(vector<string> args) {
             else if (rw) ret = rw->run(args);
 
             if (ret == 0) return true;
+            else if (ret == 1) return false;
         }
         return false;
     } else {
-        
         return false;
     }
 }

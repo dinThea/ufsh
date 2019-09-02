@@ -45,11 +45,10 @@ map<string, variant<float, string, int, char>> registry::get_row() {
 
 }
 
-table::table(string nam) {
+table::table(string nam, bool create_file) {
 
     metafile _table("meta/tables.meta");
-    metafile _specific("meta/"+nam+".meta");
-    
+    if (create_file) metafile _specific("meta/"+nam+".meta");
     this->name = nam;
 
 }
@@ -80,13 +79,12 @@ string table::get_name() {
 
 bool table::del() {
     
-    metafile _table("meta/tables.meta");
+    metafile _tables("meta/tables.meta");
 
-    _table.remove_line(this->name+" ");
-
-    remove(("meta/"+this->name+".meta").c_str());
+    bool result = _tables.remove_line(this->name+" ");
     
-    return true;
+    remove(("meta/"+this->name+".meta").c_str());
+    return result;
 
 }
 
