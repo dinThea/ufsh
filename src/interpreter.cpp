@@ -63,7 +63,7 @@ void interpreter::  exec() { //chama os métodos correspondentes
     vector<string> input;
     do {
         input = read();
-        cout << input[0] << endl;
+        // cout << input[0] << endl;
     
     } while (run_all(input));
 

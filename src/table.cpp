@@ -45,24 +45,35 @@ map<string, variant<float, string, int, char>> registry::get_row() {
 
 }
 
+// table::table(string nam) {
+
+//     metafile _table("meta/tables.meta");
+//     metafile _specific("meta/"+nam+".meta");
+    
+//     this->name = nam;
+
+// }
+
 table::table(string nam) {
 
-    metafile _table("meta/tables.meta");
-    metafile _specific("meta/"+nam+".meta");
+    boost::split(this->fields, nam, boost::is_any_of(";"));
+
+    // int fields_size = this->fields.size();
     
-    this->name = nam;
+    for (vector<string>::iterator it = this->fields.begin(); it != this->fields.end(); it ++) {
+        vector<string> type_name;
+        boost::split(type_name, *it, boost::is_any_of(":"));
+        //this->type_fields.push_back(type_name[0]);
+        //this->fields.push_back(type_name[1]);
+    }
 
-}
-
-table::table(vector<string> nam) {
 
     metafile _table("meta/tables.meta");
 
     string input;
     input = nam[1] + " " + nam[2];
     _table.insert_line(input);
-
-    metafile _specific("meta/"+nam[1]+".meta");
+    metafile _specific(string("meta/" + nam[1] + string (".meta")));
     
     this->name = nam[1];
 
@@ -120,3 +131,4 @@ string table::query_one(string query) {
 // bool table::insert_field(string field) {
 //     return true;
 // }
+
