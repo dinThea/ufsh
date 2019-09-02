@@ -26,7 +26,7 @@ int RT(vector<string> args) { //remove tabela. EX: RT CLIENTES
 int CT(vector<string> args) { //cria tabela. EX: CT TABELA CAMPO_DE_DADOS
 
     cout << "Criando tabela: " << args[1] << endl;
-    cout << "Com os campos: " << args[2] << endl;
+    cout << "Com os campos: " << endl;
     table _table(args);
     // result_Fields(argv[2]);
 
@@ -34,7 +34,7 @@ int CT(vector<string> args) { //cria tabela. EX: CT TABELA CAMPO_DE_DADOS
 }
 
 int AT(vector<string> args) { //lista metadados de uma tabela. EX: AT CLIENTES
-
+    
     metafile m_table("meta/tables.meta");
     m_table.show_metadata(args[1]);   
 

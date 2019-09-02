@@ -22,9 +22,9 @@ vector<string> split(string arg, string separator) {
 registry::registry(string arg, vector<string> types, vector<string> fields) {
 
     vector<string> args = split(arg, ";");
-    int size = args.size();
+
     if (!args.empty()) {
-        for (int i = 0; i < size; i++) {
+        for (int i = 0; i < args.size(); i++) {
             if (types[i].compare("INT")) {
                 this->row[fields[i]] = stoi(args[i]);                
             } else if (types[i].compare("STR")) {
@@ -109,12 +109,12 @@ string table::query_one(string query) {
     return _specific.find_first(query);
 }
 
-// vector<string> table::query_many(string query) {
-//     metafile _specific("meta/"+this->name+".meta");
+vector<string> table::query_many(string query) {
+    metafile _specific("meta/"+this->name+".meta");
     
-//     return _specific.find_all(query);
-// }
+    return _specific.find_all(query);
+}
 
-// bool table::insert_field(string field) {
-//     return true;
-// }
+bool table::insert_field(string field) {
+
+}
