@@ -1,6 +1,9 @@
 #include <string>
 #include <fstream>
 #include <iostream>
+#include <sstream>
+#include <vector>
+#include <boost/algorithm/string.hpp>
 #include "file.h"
 #include <vector>
 #include <boost/algorithm/string.hpp>
@@ -77,7 +80,11 @@ bool metafile::verify_file_existence(string file_path) {
 bool metafile::show_metadata(string query) { 
     (*this->_file).seekg(0);
     string line;
+<<<<<<< HEAD
     // stringstream iss;
+=======
+    istringstream iss;
+>>>>>>> 59d4a06ccab05023b2bf70443608fb0b9f32a32c
     vector<string> splitted_input;
     bool found=false;
     while ((getline((*this->_file), line)) && (!found)) { //enquanto há linhas para serem lidas e não achou a tabela
@@ -97,7 +104,11 @@ bool metafile::show_metadata(string query) {
 void metafile::show() { 
     (*this->_file).seekg(0);
     string line;
+<<<<<<< HEAD
     // isstringstream iss;
+=======
+    istringstream iss;
+>>>>>>> 59d4a06ccab05023b2bf70443608fb0b9f32a32c
     vector<string> splitted_input;
     while ((getline((*this->_file), line))) { //enquanto há linhas para serem lidas
             boost::split(splitted_input, line, boost::is_any_of(" ")); //separa a linha para pegar o nome da tabela

@@ -1,5 +1,6 @@
 #include "table_worker.h"
 #include "table.h"
+#include "file.h"
 #include <iostream>
 
 int RT(vector<string> args) { //remove tabela. EX: RT CLIENTES
@@ -32,16 +33,26 @@ int CT(vector<string> args) { //cria tabela. EX: CT TABELA CAMPO_DE_DADOS
 }
 
 int AT(vector<string> args) { //lista metadados de uma tabela. EX: AT CLIENTES
+<<<<<<< HEAD
     //  metafile m_table("meta/tables.meta");
     //  metadata_table.show_metadata(args[1]);   
+=======
+     metafile m_table("meta/tables.meta");
+    m_table.show_metadata(args[1]);   
+>>>>>>> 59d4a06ccab05023b2bf70443608fb0b9f32a32c
 
     return 0;
 }
 
 int LT(vector<string> args) { //lista todas as tabelas existentes. EX: LT
     cout << "Lista das tabelas criadas: " << endl;
+<<<<<<< HEAD
     // metafile metadata_table("meta/tables.meta");
     // _table.show();
+=======
+    metafile metadata_table("meta/tables.meta");
+    metadata_table.show();
+>>>>>>> 59d4a06ccab05023b2bf70443608fb0b9f32a32c
     
     return 0;
 }
