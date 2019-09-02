@@ -14,8 +14,8 @@ public:
     bool remove_line(string line); //remove linha do arquivo
     bool show_metadata(string name); //apresenta os metadados da tabela "query"
     void show(); //lista todas as tabelas criadas
-    string metafile::find_first(string query); //encontra primeira ocorrência do elemento "query"
-    string metafile::find_all(string query); //encontra todas as ocorrências do elemento "query"
+    string find_first(string query); //encontra primeira ocorrência do elemento "query"
+    vector<string> find_all(string query); //encontra todas as ocorrências do elemento "query"
 private:
     string file_name;
     ifstream *_file;

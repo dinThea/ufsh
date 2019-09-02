@@ -98,11 +98,11 @@ bool table::insert_one(string args) {
 }
 
 bool table::show_last() {
-
+    return true;
 }
 
 bool table::show() {
-
+    return true;
 }
 
 string table::query_one(string query) {
