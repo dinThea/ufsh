@@ -122,10 +122,11 @@ void metafile::show() {
 string metafile::find_first(string query){ 
     (*this->_file).seekg(0);
     string line;
-    bool found;
+    bool found = false;
+
     while (!(this->_file->eof()) && (!found)) {
         getline((*this->_file), line);
-        if (line.find(query)) {
+        if (!line.find(query)) {
             found=true;
             }
         }
@@ -137,14 +138,15 @@ vector<string> metafile::find_all(string query){
     (*this->_file).seekg(0);
     string line;
     vector<string> result;
-    bool found;
-    while (!(this->_file->eof()) && (!found)) {
+    bool found = false;
+
+    while (!(this->_file->eof())) {
         getline((*this->_file), line);
-        if (line.find(query)) {
+        if (line.find(query) <= 3) {
             found=true;
             result.push_back(line);
-            }
         }
+    }
     
     return result;
 }

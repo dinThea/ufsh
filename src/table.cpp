@@ -51,7 +51,7 @@ table::table(string nam, bool create_file) {
     if (create_file) metafile _specific("meta/"+nam+".meta");
     this->name = nam;
 
-    // this->load_fields();
+    this->load_fields();
 
 }
 
@@ -89,9 +89,10 @@ void table::load_fields() {
     string line = _table.find_first(this->name);
 
     vector<string> parts;
-    boost::split(parts, line, boost::is_any_of(" "));
+
+    boost::split(parts, line, boost::is_any_of("\t ")); //name and params
     vector<string> fields;
-    boost::split(fields, fields[1], boost::is_any_of(";"));
+    boost::split(fields, parts[1], boost::is_any_of(";"));
 
     for (vector<string>::iterator it = fields.begin(); it != fields.end(); it ++) {
         vector<string> type_name;
@@ -136,15 +137,68 @@ bool table::show() {
 }
 
 string table::query_one(string query) {
+    
     metafile _specific("meta/"+this->name+".meta");
     
-    return _specific.find_first(query);
+    vector<string> key_value;
+    boost::split(key_value, query, boost::is_any_of(":"));
+    
+    string line =  _specific.find_first(key_value[1]);
+    
+    if (this->verify_fields(line)) {
+        return line;
+    } else {
+        return "";
+    }
+}
+
+bool table::verify_fields(string result) {
+
+    bool correct = true;
+    vector<string> fields;
+    boost::split(fields, result, boost::is_any_of(":"));
+    for (int i = 0; i < fields.size(); i++) {
+        if (this->type_fields[i].compare("INT")) {
+            try {
+                stoi(fields[i]);
+            }
+            catch (const std::invalid_argument& ia) {
+                return false;
+            }
+        } else if (this->type_fields[i].compare("STR")) {
+            correct = true;
+        } else if (this->type_fields[i].compare("FLT")) {
+            correct = true;
+        } else if (this->type_fields[i].compare("BIN")) {
+            try {
+                stof(fields[i]);
+            }
+            catch (const std::invalid_argument& ia) {
+                return false;
+            }
+        }
+    } 
+
 }
 
 vector<string> table::query_many(string query) {
+
     metafile _specific("meta/"+this->name+".meta");
     
-    return _specific.find_all(query);
+    vector<string> key_value;
+    boost::split(key_value, query, boost::is_any_of(":"));
+    
+    vector<string> line = _specific.find_all(key_value[1]);
+    
+    for (vector<string>::iterator it = line.begin(); it != line.end(); it++) {
+        if (this->verify_fields(*it)) {
+        } else {
+            line.erase(it);
+        }
+    }
+
+    return line;
+
 }
 
 // bool table::insert_field(string field) {

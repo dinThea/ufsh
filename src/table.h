@@ -33,6 +33,7 @@ public:
 private:
     bool insert_field(string field);
     void load_fields();
+    bool verify_fields(string result);
     vector<string> fields;
     vector<string> type_fields;
     vector<registry> tree_array;

@@ -15,32 +15,33 @@ int IR(vector<string> args, table tbl) { //insere registro na tabela. EX: IR TAB
 
 int BR(vector<string> args, table tbl) {//realiza busca na tabela
 
-    // if(args[1].compare("N")) { //busca por todas as ocorrências na tabela
-    //     cout << "Registros da tabela " << args[0] << endl; //BR N TABELA BUSCA
-    //     // vector<string> result;
-    //     // result = tbl.query_many(args[2]);
-    //     // if (result.empty()) {
-    //     //     cout << "Nenhum registro encontrado" << endl;
-    //     // } else {
-    //     //     cout << "Registros encontrados:" << endl;
-    //     //     for (vector<string>::iterator it = result.begin(); it != result.end(); it++) {
-    //     //         cout << *it << endl;
-    //     //     }
-    //     // }
-    // }
-    // else if(args[1].compare("U")) { //busca pela primeira ocorrência na tabela
-    //     cout << "Busca em " << args[2] << " pelo critério " << args[3] << endl; // Exemplo: BR U TABELA BUSCA
-    //     // string result;
-    //     // result = tbl.query_one(args[2]);
-    //     // if (result.compare("")) {
-    //     //     cout << "Nenhum registro encontrado" << endl;
-    //     // } else {
-    //     //     cout << "Registro encontrado:" << endl;
-    //     //     cout << result << endl;
-    //     // }
-    // }
-    // else
-    //     cout << "syntax error" << endl;
+    if(!args[1].compare("N")) { //busca por todas as ocorrências na tabela
+        cout << "Registros da tabela " << args[0] << " com o critério " << args[3] << endl; //BR N TABELA BUSCA
+        vector<string> result;
+        result = tbl.query_many(args[3]);
+        if (result.empty()) {
+            cout << "Nenhum registro encontrado" << endl;
+        } else {
+            cout << result.size() << " registros encontrados:" << endl;
+
+            for (vector<string>::iterator it = result.begin(); it != result.end(); it++) {
+                cout << *it << endl;
+            }
+        }
+    }
+    else if(!args[1].compare("U")) { //busca pela primeira ocorrência na tabela
+        cout << "Busca em " << args[2] << " pelo critério " << args[3] << endl; // Exemplo: BR U TABELA BUSCA
+        string result;
+        result = tbl.query_one(args[3]);
+        if (!result.compare("")) {
+            cout << "Nenhum registro encontrado" << endl;
+        } else {
+            cout << "Registro encontrado:" << endl;
+            cout << result << endl;
+        }
+    }
+    else
+        cout << "syntax error" << endl;
     return 0;
 }
 
