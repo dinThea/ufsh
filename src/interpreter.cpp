@@ -2,6 +2,7 @@
 #include <algorithm>
 #include <iostream>
 #include <fstream>
+#include <boost/algorithm/string/join.hpp>
 
 #include "registry_worker.h"
 #include "table_worker.h"
@@ -40,17 +41,33 @@ vector<string> interpreter::read() { //lê comando do terminal
     } while (!input.compare(""));
 
     istringstream iss(input);
+
     if (input.compare("") != 0) {
+        int index = 0;
         for (string s; iss >> input;) {
-            splitted_input.push_back(input);
+            if (index == 1) {
+                vector<string> temp;
+                temp.push_back(splitted_input[2]);
+                temp.push_back(input);
+                splitted_input[2] = boost::algorithm::join(temp, " "); 
+            } else {
+                splitted_input.push_back(input);
+            }
+
+            size_t found = input.find(";");
+            size_t found2 = input.find(":");
+
+            if (found!=string::npos|| found2!=string::npos) {
+                index = 1;
+            } 
         }
 
         transform(splitted_input[0].begin(), splitted_input[0].end(), splitted_input[0].begin(),::toupper);
-
-        if ((!splitted_input[0].compare("CI")) || (!splitted_input[0].compare("BR"))) {
-            transform(splitted_input[1].begin(), splitted_input[1].end(), splitted_input[1].begin(),::toupper);
-            transform(splitted_input[2].begin(), splitted_input[1].end(), splitted_input[2].begin(),::toupper);
-        }
+        cout << splitted_input.size(); // << " " << splitted_input[2];
+        // if ((!splitted_input[0].compare("CI")) || (!splitted_input[0].compare("BR"))) {
+        //     transform(splitted_input[1].begin(), splitted_input[1].end(), splitted_input[1].begin(),::toupper);
+        //     transform(splitted_input[2].begin(), splitted_input[1].end(), splitted_input[2].begin(),::toupper);
+        // }
     }
     
     return splitted_input;
@@ -62,7 +79,7 @@ void interpreter::exec() { //chama os métodos correspondentes
     vector<string> input;
     do {
         input = read();
-        cout << input[0] << endl;
+        // cout << input[0] << endl;
     
     } while (run_all(input));
 
@@ -80,7 +97,6 @@ bool interpreter::run_all(vector<string> args) {
             registry_worker *rw = dynamic_cast<registry_worker*>(wk);
             if (tw) ret = tw->run(args);
             else if (rw) ret = rw->run(args);
-
             if (ret == 0) return true;
             else if (ret == 1) return false;
         }

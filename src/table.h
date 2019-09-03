@@ -32,7 +32,9 @@ public:
     string get_name();
 private:
     bool insert_field(string field);
+    void load_fields();
     vector<string> fields;
+    vector<string> type_fields;
     vector<registry> tree_array;
     vector<registry*> last_registries;
     string name;

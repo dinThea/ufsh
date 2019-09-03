@@ -5,7 +5,7 @@
 
 int RT(vector<string> args) { //remove tabela. EX: RT CLIENTES
 
-    cout << "Deletando tabela: " << args[1] << endl;
+    cout << "Deletando tabela " << args[1] << endl;
 
     table _table(args[1], false);
     bool res = _table.del();
@@ -22,11 +22,10 @@ int RT(vector<string> args) { //remove tabela. EX: RT CLIENTES
     return 0;
 
 }
-
 int CT(vector<string> args) { //cria tabela. EX: CT TABELA CAMPO_DE_DADOS
 
     cout << "Criando tabela: " << args[1] << endl;
-    cout << "Com os campos: " << endl;
+    cout << "Com os campos: " << args[2] << endl;
     table _table(args);
     // result_Fields(argv[2]);
 
@@ -70,7 +69,7 @@ int table_worker::run(vector<string> args) {
     if ((*this->functions).find(args[0]) != (*this->functions).end()) {
         return (*(*this->functions)[args[0]])(args);
     } else { 
-        return 1;
+        return 2;
     }   
     
 }

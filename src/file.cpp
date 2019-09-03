@@ -5,6 +5,8 @@
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include "file.h"
+#include <vector>
+using namespace std;
 
 metafile::metafile(string file_path) {
     
@@ -94,11 +96,13 @@ bool metafile::show_metadata(string query) {
             found=true;
             boost::split(splitted_input, line, boost::is_any_of(":; ")); //separa os campos considerando os separadores
             cout<<"Tabela : "<<splitted_input[0]<<endl;
-            cout<<"Campos : "<<endl;
+            cout<<"Campos : ";
+            int couter = 0;
             for(int i=1;i<splitted_input.size();i++){ //enquanto tiver campos a serem mostrados
-                cout<<splitted_input[i]<<endl;
-            
+                cout<<splitted_input[i]<< (couter%2?";":":");
+                couter++;
             }
+            cout << endl;
         }
     }
     return found;

@@ -51,9 +51,21 @@ table::table(string nam, bool create_file) {
     if (create_file) metafile _specific("meta/"+nam+".meta");
     this->name = nam;
 
+    // this->load_fields();
+
 }
 
 table::table(vector<string> nam) {
+
+    vector<string> fields;
+    boost::split(fields, nam[2], boost::is_any_of(";"));
+
+    for (vector<string>::iterator it = fields.begin(); it != fields.end(); it ++) {
+        vector<string> type_name;
+        boost::split(type_name, *it, boost::is_any_of(":"));
+        this->type_fields.push_back(type_name[0]);
+        this->fields.push_back(type_name[1]);
+    }
 
     metafile _table("meta/tables.meta");
 
@@ -68,6 +80,25 @@ table::table(vector<string> nam) {
 }
 
 table::~table() {
+
+}
+
+void table::load_fields() {
+    
+    metafile _table("meta/tables.meta");
+    string line = _table.find_first(this->name);
+
+    vector<string> parts;
+    boost::split(parts, line, boost::is_any_of(" "));
+    vector<string> fields;
+    boost::split(fields, fields[1], boost::is_any_of(";"));
+
+    for (vector<string>::iterator it = fields.begin(); it != fields.end(); it ++) {
+        vector<string> type_name;
+        boost::split(type_name, *it, boost::is_any_of(":"));
+        this->type_fields.push_back(type_name[0]);
+        this->fields.push_back(type_name[1]);
+    }
 
 }
 
@@ -115,6 +146,7 @@ vector<string> table::query_many(string query) {
     return _specific.find_all(query);
 }
 
-bool table::insert_field(string field) {
+// bool table::insert_field(string field) {
+//     return true;
+// }
 
-}
