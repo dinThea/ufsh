@@ -119,7 +119,8 @@ bool table::del() {
 
 }
 
-bool table::insert_one(string args) {
+bool table::insert_one(string args, string reg_name) {
+    this->name = reg_name;
     metafile _specific("meta/"+this->name+".meta");
     _specific.insert_line(args);
 

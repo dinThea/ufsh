@@ -3,6 +3,7 @@
 #include "file.h"
 #include <iostream>
 
+
 int RT(vector<string> args) { //remove tabela. EX: RT CLIENTES
 
     cout << "Deletando tabela " << args[1] << endl;

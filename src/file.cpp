@@ -99,7 +99,7 @@ bool metafile::show_metadata(string query) {
             cout<<"Campos : ";
             int couter = 0;
             for(int i=1;i<splitted_input.size();i++){ //enquanto tiver campos a serem mostrados
-                cout<<splitted_input[i]<< (couter%2?";":":");
+                cout<<splitted_input[i]<< (couter%2 ? ";"  : ":");
                 couter++;
             }
             cout << endl;

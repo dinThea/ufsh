@@ -23,7 +23,7 @@ public:
     table(vector<string> args);
     ~table();
     bool del();
-    bool insert_one(string args); //insere novo elemento da tabela no arquivo
+    bool insert_one(string args, string reg_name); //insere novo elemento da tabela no arquivo
     bool save_to_file();
     bool show_last();
     bool show();
