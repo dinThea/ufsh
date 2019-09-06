@@ -65,6 +65,11 @@ table_worker::table_worker() {
     (*this->functions)["AT"] = (tfunc) AT;
     (*this->functions)["LT"] = (tfunc) LT;
     
+    (this->num_fields)["CT"] = 3;
+    (this->num_fields)["RT"] = 2;
+    (this->num_fields)["AT"] = 2;
+    (this->num_fields)["LT"] = 1;
+
 }
 
 table_worker::~table_worker() {
@@ -76,7 +81,12 @@ table_worker::~table_worker() {
 int table_worker::run(vector<string> args) {
 
     if ((*this->functions).find(args[0]) != (*this->functions).end()) {
-        return (*(*this->functions)[args[0]])(args);
+        if (args.size() == this->num_fields[args[0]]) {
+            return (*(*this->functions)[args[0]])(args);
+        } else {
+            cout << "Número incorreto de argumentos" << endl;
+            return 1;
+        }
     } else { 
         return 2;
     }   
