@@ -25,12 +25,20 @@ int RT(vector<string> args) { //remove tabela. EX: RT CLIENTES
 }
 int CT(vector<string> args) { //cria tabela. EX: CT TABELA CAMPO_DE_DADOS
 
-    cout << "Criando tabela: " << args[1] << endl;
-    cout << "Com os campos: " << args[2] << endl;
-    table _table(args);
-    // result_Fields(argv[2]);
+    if (!metafile::verify_file_existence("meta/" + args[1] + ".meta")) {
+        cout << "Erro: tabela já existente" << endl;
+        return 1;
+    }
+    else{
+        cout << "Criando tabela: " << args[1] << endl;
+        cout << "Com os campos: " << args[2] << endl;
 
-    return 0;
+        table _table(args);
+        // result_Fields(argv[2]);
+
+        return 0;
+
+    }
 }
 
 int AT(vector<string> args) { //lista metadados de uma tabela. EX: AT CLIENTES

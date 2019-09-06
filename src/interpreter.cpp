@@ -70,7 +70,7 @@ vector<string> interpreter::read() { //lê comando do terminal
 
         transform(splitted_input[0].begin(), splitted_input[0].end(), splitted_input[0].begin(),::toupper);
 
-        cout << splitted_input[0] << " " << endl;
+        // cout << splitted_input[0] << " " << endl;
 
         if ((!splitted_input[0].compare("CI")) || (!splitted_input[0].compare("BR"))) {
 

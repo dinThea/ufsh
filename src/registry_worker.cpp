@@ -2,7 +2,7 @@
 #include "table.h"
 #include <iostream>
 
-int IR(vector<string> args, table tbl) { //insere registro na tabela. EX: IR TABELA CAMPO_DE_DADOS
+int registry_worker::IR(vector<string> args, table tbl) { //insere registro na tabela. EX: IR TABELA CAMPO_DE_DADOS
 
     cout << "Inserindo Registro na tabela: " << args[1] << endl;
     cout << "Com os Registros: " << args[2] << endl;
@@ -13,65 +13,61 @@ int IR(vector<string> args, table tbl) { //insere registro na tabela. EX: IR TAB
 
 }
 
-int BR(vector<string> args, table tbl) {//realiza busca na tabela
+int registry_worker::BR(vector<string> args, table tbl) {//realiza busca na tabela
 
     if(!args[1].compare("N")) { //busca por todas as ocorrências na tabela
-        cout << "Registros da tabela " << args[0] << " com o critério " << args[3] << endl; //BR N TABELA BUSCA
+        this->results[args[2]] = "Registros da tabela " + args[0] + " com o critério " + args[3] + "\n"; //BR N TABELA BUSCA
         vector<string> result;
         result = tbl.query_many(args[3]);
         if (result.empty()) {
-            cout << "Nenhum registro encontrado" << endl;
+            this->results[args[2]] += this->results[args[2]] + "Nenhum registro encontrado\n";
         } else {
-            cout << result.size() << " registros encontrados:" << endl;
+            this->results[args[2]] += result.size() + " registros encontrados:\n";
 
             for (vector<string>::iterator it = result.begin(); it != result.end(); it++) {
-                cout << *it << endl;
+                this->results[args[2]] = this->results[args[2]] + *it + "\n";
             }
         }
     }
     else if(!args[1].compare("U")) { //busca pela primeira ocorrência na tabela
-        cout << "Busca em " << args[2] << " pelo critério " << args[3] << endl; // Exemplo: BR U TABELA BUSCA
+        this->results[args[2]] = "Busca em " + args[2] + " pelo critério " + args[3] + "\n"; // Exemplo: BR U TABELA BUSCA
         string result;
         result = tbl.query_one(args[3]);
         if (!result.compare("")) {
-            cout << "Nenhum registro encontrado" << endl;
+            this->results[args[2]] += "Nenhum registro encontrado\n";
         } else {
-            cout << "Registro encontrado:" << endl;
-            cout << result << endl;
+            this->results[args[2]] += "Registro encontrado:\n";
+            this->results[args[2]] += result + "\n";
         }
     }
     else
-        cout << "syntax error" << endl;
+        this->results[args[2]] += "syntax error\n";
     return 0;
 }
 
-int AR(vector<string> args, table tbl) {
+int registry_worker::AR(vector<string> args, table tbl) {
 
     cout << "Registros da última busca: " << endl;    
-    // tbl.show_last();
+    cout << this->results[args[1]];
 
     return 0;
 }
 
-int RR(vector<string> args, table tbl) { //remove registro da tabela
+int registry_worker::RR(vector<string> args, table tbl) { //remove registro da tabela
     cout << "Registro " << args[1] << " removida!";
     return 0;
 }
 
 registry_worker::registry_worker() {
     
-    this->functions = new map<string, pfunc>; 
-    (*this->functions)["IR"] = (pfunc) IR;
-    (*this->functions)["BR"] = (pfunc) BR;
-    (*this->functions)["AR"] = (pfunc) AR;
-    (*this->functions)["RR"] = (pfunc) RR;
+    // this->functions = new map<string, pfunc>; 
     
 }
 
 
 registry_worker::~registry_worker() {
     
-    free(this->functions); 
+    // free(this->functions); 
     
 }
 
@@ -82,8 +78,17 @@ int registry_worker::run(vector<string> args) {
         this->tbl = new table(args[1]);
     }
     
-    if ((*this->functions).find(args[0]) != (*this->functions).end()) {
-        return (*(*this->functions)[args[0]])(args, *this->tbl);
+    if (!args[0].compare("IR")) {
+        return this->IR(args, *(this->tbl));
+    }
+    else if (!args[0].compare("BR")) {
+        return this->BR(args, *(this->tbl));
+    }
+    else if (!args[0].compare("AR")) {
+        return this->AR(args, *(this->tbl));
+    }
+    else if (!args[0].compare("RR")) {
+        return this->RR(args, *(this->tbl));
     } else { 
         return 2;
     }   

@@ -16,10 +16,10 @@ public:
     void show(); //lista todas as tabelas criadas
     string find_first(string query); //encontra primeira ocorrência do elemento "query"
     vector<string> find_all(string query); //encontra todas as ocorrências do elemento "query"
+    static bool verify_file_existence(string file_path); //verifica a existência do arquivo
 private:
     string file_name;
     ifstream *_file;
-    static bool verify_file_existence(string file_path); //verifica a existência do arquivo
     bool verify_line_existence(string line);
 };
 

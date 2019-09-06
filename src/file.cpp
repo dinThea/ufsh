@@ -80,7 +80,6 @@ bool metafile::verify_file_existence(string file_path) {
     
     ifstream test;
     test.open(file_path);
-    // cout << test.good();
     return !test.good();
 
 }
