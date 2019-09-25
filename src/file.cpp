@@ -33,7 +33,7 @@ bool metafile::insert_line(string line) {
     ofstream file;
     vector<string> types;
     vector<string> splitted_input;
-    file.open(file_name, ios::binary);
+    file.open(file_name, ios::binary | ios_base::app);
     int n;
     float m;
     string input;
@@ -44,6 +44,9 @@ bool metafile::insert_line(string line) {
 
     }else{ //senão insere como binario
         cout<<"entrou"<<endl;
+        file.seekp(0,file.end);
+        int len=file.tellp();
+        file.seekp(len);
         types=this->get_types(); //chama metodo que verifica os tipos da tabela
         for(int i=0;i<types.size();i++){
             if((!types[i].compare("STR")) || (!types[i].compare("BIN"))){
