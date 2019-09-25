@@ -14,10 +14,10 @@ metafile::metafile(string file_path) {
     this->file_name = file_path;
     if (metafile::verify_file_existence(file_path)) {
         ofstream new_file;
-        new_file.open(file_path);
+        new_file.open(file_path, ios::binary);
         new_file.close();
     }
-    (*this->_file).open(file_path);
+    (*this->_file).open(file_path, ios::binary);
 
 
 }
@@ -31,8 +31,33 @@ metafile::~metafile() {
 
 bool metafile::insert_line(string line) { 
     ofstream file;
-    file.open(file_name, ios_base::app);
-    file << line << '\n';
+    vector<string> types;
+    vector<string> splitted_input;
+    file.open(file_name, ios::binary);
+    int n;
+    float m;
+    string input;
+
+    boost::split(splitted_input, line, boost::is_any_of("; "));
+    if(!file_name.compare("meta/tables.meta")){ //se arquivo a ser aberto for o de metadados insere como txt
+        file<<line<<endl;
+
+    }else{ //senão insere como binario
+        cout<<"entrou"<<endl;
+        types=this->get_types(); //chama metodo que verifica os tipos da tabela
+        for(int i=0;i<types.size();i++){
+            if((!types[i].compare("STR")) || (!types[i].compare("BIN"))){
+                input = splitted_input[i];
+                file.write(input.c_str(), input.size());
+            }else if(!types[i].compare("INT")){
+                n=stoi(splitted_input[i]);
+                file.write( (char*) &n, sizeof(n));
+            }else if(!types[i].compare("FLT")){
+                m=stof(splitted_input[i]);
+                file.write((char*)&m, sizeof(m));
+            }
+        }
+    }
     file.close();
 }
 
@@ -138,7 +163,6 @@ vector<string> metafile::find_all(string query){
     string line;
     vector<string> result;
     bool found = false;
-
     while (!(this->_file->eof())) {
         getline((*this->_file), line);
         if (line.find(query) <= 3) {
@@ -148,4 +172,31 @@ vector<string> metafile::find_all(string query){
     }
     
     return result;
+}
+
+vector<string> metafile::get_types(){
+    vector<string>types; // vetor que recebe os tipos existentes na tabela
+    vector<string>table;
+    vector<string>splitted_input;
+    fstream file;
+    file.open("meta/tables.meta");
+    string line;
+    bool found =false; 
+
+    boost::split(table, file_name, boost::is_any_of("/."));  //pega o nome da tabela a ser acessada
+    while ((!(file.eof())) && (!found) ) {
+        getline((file), line);
+        if (!line.find(table[1])) {
+            found=true;
+            boost::split(splitted_input, line, boost::is_any_of(":; "));
+        }
+    }
+
+    for(int i=0;i<splitted_input.size();i++){ //coloca os tipos no vector types
+        if((!splitted_input[i].compare("STR")) || (!splitted_input[i].compare("FLT")) || (!splitted_input[i].compare("BIN")) || (!splitted_input[i].compare("INT"))){
+            types.push_back(splitted_input[i]);
+        }
+    }
+
+    return types;
 }

@@ -49,13 +49,11 @@ int registry_worker::AR(vector<string> args, table tbl) {
 
     cout << "Registros da última busca: " << endl;    
     cout << this->results[args[1]];
-
     return 0;
 }
 
 int registry_worker::RR(vector<string> args, table tbl) { //remove registro da tabela
-    cout << "Registro " << args[1] << " removida!";
-    return 0;
+    //tbl.invalidate_line(args[2]);
 }
 
 registry_worker::registry_worker() {
@@ -65,6 +63,7 @@ registry_worker::registry_worker() {
     (this->num_fields)["BR"] = 4;
     (this->num_fields)["AR"] = 2;
     (this->num_fields)["RR"] = 2;
+    this->results.clear(); //limpa os resultados quando abre uma nova execucao
 
 }
 

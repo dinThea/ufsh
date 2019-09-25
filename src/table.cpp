@@ -142,8 +142,9 @@ string table::query_one(string query) {
     
     vector<string> key_value;
     boost::split(key_value, query, boost::is_any_of(":"));
-    
+    cout<<key_value[0]<<" "<<key_value[1]<<endl;
     string line =  _specific.find_first(key_value[1]);
+
     
     if (this->verify_fields(line)) {
         return line;
@@ -168,18 +169,19 @@ bool table::verify_fields(string result) {
         } else if (this->type_fields[i].compare("STR")) {
             correct = true;
         } else if (this->type_fields[i].compare("FLT")) {
-            correct = true;
-        } else if (this->type_fields[i].compare("BIN")) {
             try {
                 stof(fields[i]);
             }
             catch (const std::invalid_argument& ia) {
                 return false;
             }
-        }
-    } 
+        } else if (this->type_fields[i].compare("BIN")) {
+            correct=true;
+            }
+    }
+    return correct;
+} 
 
-}
 
 vector<string> table::query_many(string query) {
 
