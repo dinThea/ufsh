@@ -1,6 +1,7 @@
 #include "worker.h"
 #include <string>
 #include <vector>
+#include <map>
 #include <list>
 
 #ifndef INTERPRETER_H
@@ -17,8 +18,10 @@ public:
     bool run_all(vector<string> comando);
 
 private:
+
     ifstream *_file;
     string _input;
+    int eof;
 };
 
 #endif	/* interpreter_H */

@@ -78,6 +78,15 @@ table_worker::~table_worker() {
     
 }
 
+int table_worker::get_num_fields(string func) {
+    map<string,int>::iterator it = (this->num_fields).find(func);
+    if(it != (this->num_fields).end()) {
+        return (this->num_fields[func]);
+    } else {
+        return 0;
+    }
+}
+
 int table_worker::run(vector<string> args) {
 
     if ((*this->functions).find(args[0]) != (*this->functions).end()) {

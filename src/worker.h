@@ -14,6 +14,8 @@ class worker {
     public:
         virtual int run(vector<string> arg) { cout << "worker";  return 0; }
         map<string, int> num_fields;
+        int get_num_fields(string func);
+
 };
 
 #endif

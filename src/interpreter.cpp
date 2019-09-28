@@ -14,6 +14,7 @@ interpreter::interpreter(string in) {
     this->_file = new ifstream;
     this->workers = new list<worker*>;
     this->_input = in;
+    this->eof = false;
 
     (*workers).push_back(new table_worker);
     (*workers).push_back(new registry_worker );
@@ -38,39 +39,61 @@ vector<string> interpreter::read() { //lê comando do terminal
             getline(cin, input);
         } else {
             getline((*this->_file), input);
+            if ((*this->_file).eof()) {
+                this->eof = true;
+            }
         }
     } while (!input.compare(""));
-
-    istringstream iss(input);
 
     if (input.compare("") != 0) {
 
         int found_separator = 0;
-        for (string s; iss >> input;) {
-            
-            if (!found_separator) {
-                splitted_input.push_back(input);
-            } else {
-                vector<string> temp; 
-                temp.push_back(splitted_input.back());
-                temp.push_back(input);
-                splitted_input.pop_back();
-                splitted_input.push_back(boost::algorithm::join(temp, " "));
-            }
-
-            size_t found = input.find(";");
-            size_t found2 = input.find(":");
-
-            if (found!=string::npos|| found2!=string::npos) {
-                found_separator = 1;
+        int index = 0;
+        int state = 0;
+        int already_found = 0;
+        int num_params = 0;
+        splitted_input.push_back("");
+        for (auto s: input) {
+            if (state == 0) {
+                if (s != ' ') {
+                    splitted_input.back().push_back(s);
+                } else {
+                    for (auto a: (*workers)) {
+                        table_worker *tw = dynamic_cast<table_worker*>(a);
+                        registry_worker *rw = dynamic_cast<registry_worker*>(a);
+                        if (tw) num_params += tw->get_num_fields(splitted_input.back());
+                        else if (rw) num_params += rw->get_num_fields(splitted_input.back()); 
+                    }
+                    if (num_params == 0) return splitted_input;
+                    cout << s << endl;
+                    index ++;
+                    splitted_input.push_back("");
+                    state = 1;
+                }
+            } else if (state == 1) {
+                if (index < (num_params-1)) {
+                    if (s != ' ') {
+                        splitted_input.back().push_back(s);
+                        already_found = 1;
+                    } else if (already_found) {
+                        index ++;
+                        already_found = 0;
+                        splitted_input.push_back("");
+                        if (index >= (num_params-1)) {
+                            state = 2;
+                        } else {
+                            already_found = 0;
+                        }
+                    } else {
+                        splitted_input.back().push_back(s);
+                    }
+                } else state = 2;
+            } else if (state == 2) {
+                splitted_input.back().push_back(s);
             }
         }
 
-
-
         transform(splitted_input[0].begin(), splitted_input[0].end(), splitted_input[0].begin(),::toupper);
-
-        // cout << splitted_input[0] << " " << endl;
 
         if ((!splitted_input[0].compare("CI")) || (!splitted_input[0].compare("BR"))) {
 
@@ -88,9 +111,8 @@ void interpreter::exec() { //chama os métodos correspondentes
     vector<string> input;
     do {
         input = read();
-        // cout << input[0] << endl;
-    
-    } while (run_all(input));
+        cout << input[0] << endl;
+    } while (run_all(input) && !this->eof);
 
 }
 

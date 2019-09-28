@@ -56,6 +56,15 @@ int registry_worker::RR(vector<string> args, table tbl) { //remove registro da t
     //tbl.invalidate_line(args[2]);
 }
 
+int registry_worker::get_num_fields(string func) {
+    map<string,int>::iterator it = (this->num_fields).find(func);
+    if(it != (this->num_fields).end()) {
+        return (this->num_fields[func]);
+    } else {
+        return 0;
+    }
+}
+
 registry_worker::registry_worker() {
     
     // this->functions = new map<string, pfunc>; 

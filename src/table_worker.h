@@ -14,6 +14,7 @@ public:
     table_worker();
     ~table_worker();
     virtual int run(vector<string> arg);
+    int get_num_fields(string func);
 
 private:
 

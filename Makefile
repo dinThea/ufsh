@@ -18,5 +18,7 @@ makedir/file.o: src/file.cpp
 	g++ -o makedir/file.o -c src/file.cpp $(FLAGS)
 clean:
 	rm -rf makedir/*.o
+rmmeta:
+	rm -rf meta/*.meta
 mrproper: clean
 	rm -rf ufsh
