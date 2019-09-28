@@ -6,6 +6,7 @@
 
 #include "registry_worker.h"
 #include "table_worker.h"
+#include "index_worker.h"
 #include "interpreter.h"
 using namespace std;
 
@@ -17,7 +18,8 @@ interpreter::interpreter(string in) {
     this->eof = false;
 
     (*workers).push_back(new table_worker);
-    (*workers).push_back(new registry_worker );
+    (*workers).push_back(new registry_worker);
+    (*workers).push_back(new index_worker);
 
     if (in.compare("cin")) {
         (*this->_file).open(in);
@@ -61,11 +63,12 @@ vector<string> interpreter::read() { //lê comando do terminal
                     for (auto a: (*workers)) {
                         table_worker *tw = dynamic_cast<table_worker*>(a);
                         registry_worker *rw = dynamic_cast<registry_worker*>(a);
+                        index_worker *iw = dynamic_cast<index_worker*>(a);
                         if (tw) num_params += tw->get_num_fields(splitted_input.back());
-                        else if (rw) num_params += rw->get_num_fields(splitted_input.back()); 
+                        else if (rw) num_params += rw->get_num_fields(splitted_input.back());
+                        else if (iw) num_params += iw->get_num_fields(splitted_input.back()); 
                     }
                     if (num_params == 0) return splitted_input;
-                    cout << s << endl;
                     index ++;
                     splitted_input.push_back("");
                     state = 1;
@@ -126,8 +129,11 @@ bool interpreter::run_all(vector<string> args) {
             worker *wk = *it; 
             table_worker *tw = dynamic_cast<table_worker*>(wk);
             registry_worker *rw = dynamic_cast<registry_worker*>(wk);
+            index_worker *iw = dynamic_cast<index_worker*>(wk);
+
             if (tw) ret = tw->run(args);
             else if (rw) ret = rw->run(args);
+            else if (iw) ret = iw->run(args);
             if (ret == 0) return true;
             else if (ret == 1) return false;
         }

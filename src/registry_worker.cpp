@@ -85,30 +85,36 @@ registry_worker::~registry_worker() {
 
 int registry_worker::run(vector<string> args) {
 
-    if (args.size() == this->num_fields[args[0]]) {
+    if (this->get_num_fields(args[0])) {
 
-        if (this->tbl && (*this->tbl).get_name().compare((!args[0].compare("BR") ? args[2] : args[1]))) { 
+        if (args.size() == this->num_fields[args[0]]) {
+
+            if (this->tbl && (*this->tbl).get_name().compare((!args[0].compare("BR") ? args[2] : args[1]))) { 
+            } else {
+                this->tbl = new table((!args[0].compare("BR") ? args[2] : args[1]));
+            }
+
+            if (!args[0].compare("IR")) {
+                return this->IR(args, *(this->tbl));
+            }
+            else if (!args[0].compare("BR")) {
+                return this->BR(args, *(this->tbl));
+            }
+            else if (!args[0].compare("AR")) {
+                return this->AR(args, *(this->tbl));
+            }
+            else if (!args[0].compare("RR")) {
+                return this->RR(args, *(this->tbl));
+            } else { 
+                return 2;
+            }   
         } else {
-            this->tbl = new table((!args[0].compare("BR") ? args[2] : args[1]));
+            cout << "Número incorreto de argumentos" << endl;
+            return 1;
         }
-        
-        if (!args[0].compare("IR")) {
-            return this->IR(args, *(this->tbl));
-        }
-        else if (!args[0].compare("BR")) {
-            return this->BR(args, *(this->tbl));
-        }
-        else if (!args[0].compare("AR")) {
-            return this->AR(args, *(this->tbl));
-        }
-        else if (!args[0].compare("RR")) {
-            return this->RR(args, *(this->tbl));
-        } else { 
-            return 2;
-        }   
+
     } else {
-        cout << "Número incorreto de argumentos" << endl;
-        return 1;
+        return 2;
     }
     
 }
