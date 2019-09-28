@@ -24,7 +24,7 @@ registry::registry(string arg, vector<string> types, vector<string> fields) {
     vector<string> args = split(arg, ";");
 
     if (!args.empty()) {
-        for (int i = 0; i < args.size(); i++) {
+        for (int unsigned i = 0; i < args.size(); i++) {
             if (types[i].compare("INT")) {
                 this->row[fields[i]] = stoi(args[i]);                
             } else if (types[i].compare("STR")) {
@@ -189,12 +189,13 @@ vector<string> table::query_many(string query) {
     
     vector<string> key_value;
     boost::split(key_value, query, boost::is_any_of(":"));
-    
     vector<string> line = _specific.find_all(key_value[1]);
     
     for (vector<string>::iterator it = line.begin(); it != line.end(); it++) {
         if (this->verify_fields(*it)) {
-        } else {
+
+        } 
+        else{
             line.erase(it);
         }
     }
