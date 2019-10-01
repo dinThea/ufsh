@@ -90,7 +90,10 @@ vector<string> interpreter::read() { //lê comando do terminal
                     } else {
                         splitted_input.back().push_back(s);
                     }
-                } else state = 2;
+                } else {
+                    if (s != ' ') splitted_input.back().push_back(s);
+                    state = 2;
+                }
             } else if (state == 2) {
                 splitted_input.back().push_back(s);
             }

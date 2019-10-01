@@ -1,10 +1,14 @@
 #include <string>
 #include <fstream>
+#include <variant>
 
 using namespace std;
 
 #ifndef FILE_T
 #define FILET
+
+#define SEPARATOR_LINE "separatorline"
+#define SEPARATOR_ITEM "separatoritem"
 
 class metafile {
 public:
@@ -16,6 +20,8 @@ public:
     bool show_metadata(string name); //apresenta os metadados da tabela "query"
     void show(); //lista todas as tabelas criadas
     string find_first(string query); //encontra primeira ocorrência do elemento "query"
+    string find_first_binary(int index, string value, vector<string> type); //encontra primeira ocorrência do elemento "query"
+    vector<string> find_many_binary(int index, string value, vector<string> type);
     vector<string> find_all(string query); //encontra todas as ocorrências do elemento "query"
     static bool verify_file_existence(string file_path); //verifica a existência do arquivo
     vector <string> get_types(); //retorna os tipos da tabela

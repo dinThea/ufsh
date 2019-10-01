@@ -142,9 +142,11 @@ string table::query_one(string query) {
     
     vector<string> key_value;
     boost::split(key_value, query, boost::is_any_of(":"));
-    cout<<key_value[0]<<" "<<key_value[1]<<endl;
-    string line =  _specific.find_first(key_value[1]);
-
+    int idx = 0;
+    for (idx = 0; idx < this->fields.size(); idx++) {
+        if (this->fields[idx] == key_value[0]) break;
+    }
+    string line =  _specific.find_first_binary(idx, key_value[1], this->type_fields);
     
     if (this->verify_fields(line)) {
         return line;
@@ -189,18 +191,22 @@ vector<string> table::query_many(string query) {
     
     vector<string> key_value;
     boost::split(key_value, query, boost::is_any_of(":"));
-    vector<string> line = _specific.find_all(key_value[1]);
-    
-    for (vector<string>::iterator it = line.begin(); it != line.end(); it++) {
+    int idx = 0;
+    for (idx = 0; idx < this->fields.size(); idx++) {
+        if (this->fields[idx] == key_value[0]) break;
+    }
+    vector<string> lines =  _specific.find_many_binary(idx, key_value[1], this->type_fields);
+        
+    for (vector<string>::iterator it = lines.begin(); it != lines.end(); it++) {
         if (this->verify_fields(*it)) {
 
         } 
         else{
-            line.erase(it);
+            lines.erase(it);
         }
     }
 
-    return line;
+    return lines;
 
 }
 

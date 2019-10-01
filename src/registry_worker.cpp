@@ -15,44 +15,38 @@ int registry_worker::IR(vector<string> args, table tbl)
 
 int registry_worker::BR(vector<string> args, table tbl)
 { //realiza busca na tabela
-    if (!args[1].compare("N"))
-    { //busca por todas as ocorrências na tabela
-        string main_result = "Registros da tabela " + args[0] + " com o critério " + args[3] + "\n";
-        this->results.insert({args[2], main_result});
+
+    string main_result = "";
+    if (!args[1].compare("N")) { //busca por todas as ocorrências na tabela
+        main_result = "Registros da tabela " + args[0] + " com o critério " + args[3] + "\n\n";
         vector<string> result;
         result = tbl.query_many(args[3]);
-        if (result.empty())
-        {
-            main_result += "Nenhum registro encontrado\n";
-            this->results.lower_bound(args[2])->second = main_result;
+        if (result.empty()) {
+            main_result += "Nenhum registro encontrado\n\n";
         }
-        else
-        {   
-            main_result += " registros encontrados:\n";
-            this->results.lower_bound(args[2])->second = main_result;
-            for (vector<string>::iterator it = result.begin(); it != result.end(); it++)
-            {
-                main_result += *it + "\n";
-                this->results.lower_bound(args[2])->second = main_result;
+        else {   
+            main_result += " registros encontrados:\n\n";
+            for (vector<string>::iterator it = result.begin(); it != result.end(); it++) {
+                main_result += *it + "\n\n";
             }
         }
     }
     else if(!args[1].compare("U")) { //busca pela primeira ocorrência na tabela
-        string main_result = "Busca em " + args[2] + " pelo critério " + args[3] + "\n";
-        this->results.insert({args[2], main_result});
+        main_result = "Busca em " + args[2] + " pelo critério " + args[3] + "\n\n";
         string result;
         result = tbl.query_one(args[3]);
         if (result.empty()) {
-            main_result += "Nenhum registro encontrado\n";;
-            this->results.lower_bound(args[2])->second = main_result;
+            main_result += "Nenhum registro encontrado\n\n";;
         } else {
-            main_result += "Registro encontrado:\n" + result;
-            this->results.lower_bound(args[2])->second = main_result;
+            main_result += "Registro encontrado:\n\n" + result;
         }
     }
     else{
-        this->results[args[2]] += "syntax error\n";
+        main_result += "syntax error\n\n";
     }
+ 
+    this->results[args[2]] = main_result;
+
     return 0;
 }
 
@@ -60,7 +54,7 @@ int registry_worker::AR(vector<string> args, table tbl)
 {
 
     cout << "Registros da última busca: " << endl;
-    cout << this->results.lower_bound(args[1])->second << endl;
+    cout << this->results[args[1]] << endl;
     return 0;
 }
 

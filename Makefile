@@ -14,10 +14,10 @@ makedir/table_worker.o: src/table_worker.cpp
 	g++ -o makedir/table_worker.o -c src/table_worker.cpp $(CFLAGS)
 makedir/index_worker.o: src/index_worker.cpp
 	g++ -o makedir/index_worker.o -c src/index_worker.cpp $(CFLAGS)
-makedir/table.o: src/table.cpp
-	g++ -o makedir/table.o -c src/table.cpp $(CFLAGS)
 makedir/file.o: src/file.cpp
 	g++ -o makedir/file.o -c src/file.cpp $(FLAGS)
+makedir/table.o: src/table.cpp
+	g++ -o makedir/table.o -c src/table.cpp $(CFLAGS)
 clean:
 	rm -rf makedir/*.o
 rmmeta:

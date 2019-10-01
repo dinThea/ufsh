@@ -4,8 +4,9 @@
 #include <sstream>
 #include <vector>
 #include <boost/algorithm/string.hpp>
+#include <iterator>
+#include <regex>
 #include "file.h"
-#include <vector>
 using namespace std;
 
 metafile::metafile(string file_path) {
@@ -18,7 +19,6 @@ metafile::metafile(string file_path) {
         new_file.close();
     }
     (*this->_file).open(file_path, ios::binary);
-
 
 }
 
@@ -38,12 +38,12 @@ bool metafile::insert_line(string line) {
     float m;
     string input;
 
-    boost::split(splitted_input, line, boost::is_any_of("; "));
+    boost::split(splitted_input, line, boost::is_any_of(";"));
     if(!file_name.compare("meta/tables.meta")){ //se arquivo a ser aberto for o de metadados insere como txt
+        
         file<<line<<endl;
 
-    }else{ //senão insere como binario
-        cout<<"entrou"<<endl;
+    } else{ //senão insere como binario
         file.seekp(0,file.end);
         int len=file.tellp();
         file.seekp(len);
@@ -59,8 +59,13 @@ bool metafile::insert_line(string line) {
                 m=stof(splitted_input[i]);
                 file.write((char*)&m, sizeof(m));
             }
+            string stop = "separatoritem";
+            file.write(stop.c_str(), stop.size());
         }
+        string stop = "separatorline";
+        file.write(stop.c_str(), stop.size());
     }
+
     file.close();
 }
 
@@ -159,6 +164,117 @@ string metafile::find_first(string query){
         }
     
     return line;
+}
+
+string metafile::find_first_binary(int index, string value, vector<string> type){ 
+
+    (*this->_file).seekg(0);
+    string line;
+    bool found = false;
+    const string s((istreambuf_iterator<char>((*this->_file))), istreambuf_iterator<char>());
+    
+    std::regex ws_re(SEPARATOR_LINE);
+    std::sregex_token_iterator end;
+
+    for (std::sregex_token_iterator i(s.begin(), s.end(), ws_re, -1); i != end; ++i) {
+        
+        std::regex ws_re(SEPARATOR_ITEM);
+        string line = *i;
+        bool find_in_line = false;
+        string result = "";
+
+        std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
+
+        if (index <= distance(item_i, end)) {
+            int idx = 0;
+            for (; item_i != end; ++item_i) {
+                if ((!type[idx].compare("STR")) || (!type[idx].compare("BIN"))){
+                    string input = *item_i;
+                    if (!value.compare(input)) {
+                        find_in_line = true;
+                    }
+                    result += input + " | ";
+                } else if(!type[idx].compare("INT")){
+                    int entry = 0;
+                    int multiplier = 0;
+                    string a = (*item_i);
+                    for (auto c: a) {
+                        entry = int(entry | (unsigned char)(c) << multiplier);
+                        multiplier += 8;
+                    }
+                    if (!value.compare(to_string(entry))) {
+                        find_in_line = true;
+                    }
+                    result += to_string(entry) + " | ";
+                } else if(!type[idx].compare("FLT")){
+                    // m=stof(splitted_input[index]);
+                }
+                idx++;
+            }
+
+            if (find_in_line) {
+                return result;
+            }
+        }
+    }
+
+    return "";
+}
+
+vector<string> metafile::find_many_binary(int index, string value, vector<string> type){ 
+
+    (*this->_file).seekg(0);
+    string line;
+    bool found = false;
+    vector<string> results;
+    const string s((istreambuf_iterator<char>((*this->_file))), istreambuf_iterator<char>());
+    
+    std::regex ws_re(SEPARATOR_LINE);
+    std::sregex_token_iterator end;
+
+    for (std::sregex_token_iterator i(s.begin(), s.end(), ws_re, -1); i != end; ++i) {
+        
+        std::regex ws_re(SEPARATOR_ITEM);
+        string line = *i;
+        bool find_in_line = false;
+
+        std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
+
+        if (index <= distance(item_i, end)) {
+            int idx = 0;
+            string result = "";
+            for (; item_i != end; ++item_i) {
+                if ((!type[idx].compare("STR")) || (!type[idx].compare("BIN"))){
+                    string input = *item_i;
+                    if (!value.compare(input)) {
+                        find_in_line = true;
+                    }
+                    result += input + " | ";
+                } else if(!type[idx].compare("INT")){
+                    int entry = 0;
+                    int multiplier = 0;
+                    string a = (*item_i);
+                    for (auto c: a) {
+                        entry = int(entry | (unsigned char)(c) << multiplier);
+                        multiplier += 8;
+                    }
+                    if (!value.compare(to_string(entry))) {
+                        find_in_line = true;
+                    }
+                    result += to_string(entry) + " | ";
+                } else if(!type[idx].compare("FLT")){
+                    // m=stof(splitted_input[index]);
+                }
+                idx++;
+            }
+
+            if (find_in_line) {
+                results.push_back(result);
+            }
+        }
+    }
+
+    return results;
 }
 
 vector<string> metafile::find_all(string query){ 
