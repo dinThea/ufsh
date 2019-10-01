@@ -3,6 +3,7 @@
 #include <string>
 #include <variant>
 #include <fstream>
+#include <tuple>
 #include <bits/stdc++.h>
 #include <boost/algorithm/string.hpp>
 #include "table.h"
@@ -74,12 +75,44 @@ table::table(vector<string> nam) {
     _table.insert_line(input);
 
     metafile _specific("meta/"+nam[1]+".meta");
-    
+    metafile _deleted_specific("meta/"+nam[1]+"_deleted"+".meta");
+
     this->name = nam[1];
 
 }
 
 table::~table() {
+
+}
+
+bool table::invalidate_line(int address, int num_bytes) {
+    metafile _specific("meta/"+this->name+"_deleted"+".meta");
+
+    _specific.insert_int(address);
+    _specific.insert_int(num_bytes);
+}
+
+vector<tuple<int,int>> table::load_deleted() {
+    
+    ifstream _deleted;
+    vector<tuple<int,int>> results;
+    _deleted.open("meta/"+this->name+"_deleted.meta", ios::binary);
+    char buff[sizeof(int)];
+    _deleted.seekg (0, ios::beg);
+	int count = 0;
+    int last = 0;
+	while(!_deleted.eof()) {
+        _deleted.read(buff, sizeof(int));
+        if (count%2) {
+            if (last != bytes_to_int(string(buff))) {
+                tuple <int, int> values(last, bytes_to_int(string(buff)));
+                results.push_back(values);
+            }
+        }
+        count ++;
+        last = bytes_to_int(string(buff));
+    } 
+    return results;
 
 }
 
@@ -136,9 +169,17 @@ bool table::show() {
     return true;
 }
 
-string table::query_one(string query) {
+string table::query_one(string query, int & initial_address, int & final_address) {
     
     metafile _specific("meta/"+this->name+".meta");
+
+    vector<tuple<int, int>> addresses = load_deleted();
+    vector<int> initial_addresses;
+    for (auto addr: addresses) {
+        int init; int end;
+        tie (init, end) = addr; 
+        initial_addresses.push_back(init);
+    }
     
     vector<string> key_value;
     boost::split(key_value, query, boost::is_any_of(":"));
@@ -146,7 +187,7 @@ string table::query_one(string query) {
     for (idx = 0; idx < this->fields.size(); idx++) {
         if (this->fields[idx] == key_value[0]) break;
     }
-    string line =  _specific.find_first_binary(idx, key_value[1], this->type_fields);
+    string line =  _specific.find_first_binary(idx, key_value[1], this->type_fields, initial_address, final_address, initial_addresses);
     
     if (this->verify_fields(line)) {
         return line;
@@ -185,18 +226,26 @@ bool table::verify_fields(string result) {
 } 
 
 
-vector<string> table::query_many(string query) {
+vector<string> table::query_many(string query, vector<int> & initial_address, vector<int> & final_address) {
 
     metafile _specific("meta/"+this->name+".meta");
-    
+
+    vector<tuple<int, int>> addresses = load_deleted();
+    vector<int> initial_addresses;
+    for (auto addr: addresses) {
+        int init; int end;
+        tie (init, end) = addr; 
+        initial_addresses.push_back(init);
+    }
+
     vector<string> key_value;
     boost::split(key_value, query, boost::is_any_of(":"));
     int idx = 0;
     for (idx = 0; idx < this->fields.size(); idx++) {
         if (this->fields[idx] == key_value[0]) break;
     }
-    vector<string> lines =  _specific.find_many_binary(idx, key_value[1], this->type_fields);
-        
+    vector<string> lines =  _specific.find_many_binary(idx, key_value[1], this->type_fields, initial_address, final_address, initial_addresses);
+
     for (vector<string>::iterator it = lines.begin(); it != lines.end(); it++) {
         if (this->verify_fields(*it)) {
 

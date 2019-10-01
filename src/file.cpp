@@ -43,11 +43,16 @@ bool metafile::insert_line(string line) {
         
         file<<line<<endl;
 
-    } else{ //senão insere como binario
+    } else{ 
+        //senão insere como binario
         file.seekp(0,file.end);
         int len=file.tellp();
         file.seekp(len);
         types=this->get_types(); //chama metodo que verifica os tipos da tabela
+        int addr = (int)file.tellp();
+        string stop = "separatoritem";
+        file.write((char *) &addr, sizeof(addr));
+        file.write(stop.c_str(), stop.size());
         for(int i=0;i<types.size();i++){
             if((!types[i].compare("STR")) || (!types[i].compare("BIN"))){
                 input = splitted_input[i];
@@ -59,30 +64,22 @@ bool metafile::insert_line(string line) {
                 m=stof(splitted_input[i]);
                 file.write((char*)&m, sizeof(m));
             }
-            string stop = "separatoritem";
             file.write(stop.c_str(), stop.size());
         }
-        string stop = "separatorline";
+        stop = "separatorline";
         file.write(stop.c_str(), stop.size());
     }
 
     file.close();
 }
 
-// string metafile::query(string query) {
-//     regex _query(query);
-//     (*this->_file).seekg(0);
-//     do {
-//         string reading;
-//         getline((*this->_file), reading);
-//         if (regex_match(reading, _query)) {
-//             return reading;
-//         }
+bool metafile::insert_int(int a) {
 
-//     } while (!(*this->_file).eof());
+    ofstream file;
 
-//     return "";
-// }
+    file.open(file_name, ios::binary | ios_base::app);
+    file.write((char*)&a, sizeof(a));
+}
 
 bool metafile::remove_line(string query) { 
 
@@ -166,7 +163,18 @@ string metafile::find_first(string query){
     return line;
 }
 
-string metafile::find_first_binary(int index, string value, vector<string> type){ 
+int bytes_to_int(string bytes) {
+    int entry = 0;
+    int multiplier = 0;
+    for (auto c: bytes) {
+        entry = int(entry | (unsigned char)(c) << multiplier);
+        multiplier += 8;
+    }
+
+    return entry;
+}
+
+string metafile::find_first_binary(int index, string value, vector<string> type, int & initial_address, int & end_address, vector<int> deleted){ 
 
     (*this->_file).seekg(0);
     string line;
@@ -187,6 +195,10 @@ string metafile::find_first_binary(int index, string value, vector<string> type)
 
         if (index <= distance(item_i, end)) {
             int idx = 0;
+            string addr = *item_i;
+            int addr_value = bytes_to_int(addr);
+            ++item_i;
+            result = "";
             for (; item_i != end; ++item_i) {
                 if ((!type[idx].compare("STR")) || (!type[idx].compare("BIN"))){
                     string input = *item_i;
@@ -212,7 +224,23 @@ string metafile::find_first_binary(int index, string value, vector<string> type)
                 idx++;
             }
 
-            if (find_in_line) {
+            vector<int>::iterator it = find(deleted.begin(), deleted.end(), addr_value);
+            if (find_in_line && it == deleted.end()) {
+                ++i;
+                initial_address = addr_value;
+                if (i != end) {
+                    std::regex ws_re(SEPARATOR_ITEM);
+                    string line = *i;
+                    string result = "";
+            
+                    std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
+            
+                    int idx = 0;
+                    string addr = *item_i;
+                    end_address = bytes_to_int(addr) - 1;
+                } else {
+                    end_address = (int) (*this->_file).tellg() - 1;
+                }
                 return result;
             }
         }
@@ -221,7 +249,7 @@ string metafile::find_first_binary(int index, string value, vector<string> type)
     return "";
 }
 
-vector<string> metafile::find_many_binary(int index, string value, vector<string> type){ 
+vector<string> metafile::find_many_binary(int index, string value, vector<string> type, vector<int> & address, vector<int> & size, vector<int> deleted){ 
 
     (*this->_file).seekg(0);
     string line;
@@ -231,18 +259,38 @@ vector<string> metafile::find_many_binary(int index, string value, vector<string
     
     std::regex ws_re(SEPARATOR_LINE);
     std::sregex_token_iterator end;
+    bool find_in_line = false;
 
     for (std::sregex_token_iterator i(s.begin(), s.end(), ws_re, -1); i != end; ++i) {
         
+        if (find_in_line) {
+            if (i != end) {
+                std::regex ws_re(SEPARATOR_ITEM);
+                string line = *i;
+                string result = "";
+        
+                std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
+        
+                int idx = 0;
+                string addr = *item_i;
+                size.push_back(bytes_to_int(addr) - 1);
+            } else {
+                size.push_back((int) (*this->_file).tellg() - 1);
+            }
+        }
+
         std::regex ws_re(SEPARATOR_ITEM);
         string line = *i;
-        bool find_in_line = false;
+        find_in_line = false;
 
         std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
 
         if (index <= distance(item_i, end)) {
             int idx = 0;
             string result = "";
+            string addr = *item_i;
+            int addr_value = bytes_to_int(addr);
+            ++item_i;
             for (; item_i != end; ++item_i) {
                 if ((!type[idx].compare("STR")) || (!type[idx].compare("BIN"))){
                     string input = *item_i;
@@ -268,14 +316,22 @@ vector<string> metafile::find_many_binary(int index, string value, vector<string
                 idx++;
             }
 
-            if (find_in_line) {
+            vector<int>::iterator it = find(deleted.begin(), deleted.end(), addr_value);
+            if (find_in_line && it == deleted.end()) {
+                address.push_back(addr_value);
                 results.push_back(result);
             }
         }
+
+        if (find_in_line) {
+            size.push_back((int) (*this->_file).tellg() - 1);
+        }
+
     }
 
     return results;
 }
+
 
 vector<string> metafile::find_all(string query){ 
     (*this->_file).seekg(0);

@@ -20,24 +20,31 @@ int registry_worker::BR(vector<string> args, table tbl)
     if (!args[1].compare("N")) { //busca por todas as ocorrências na tabela
         main_result = "Registros da tabela " + args[0] + " com o critério " + args[3] + "\n\n";
         vector<string> result;
-        result = tbl.query_many(args[3]);
+        vector<int> inital_address, final_address;
+        result = tbl.query_many(args[3], inital_address, final_address);
         if (result.empty()) {
             main_result += "Nenhum registro encontrado\n\n";
         }
         else {   
             main_result += " registros encontrados:\n\n";
+            int idx = 0;
             for (vector<string>::iterator it = result.begin(); it != result.end(); it++) {
                 main_result += *it + "\n\n";
+                this->initial_addresses[args[2]] = inital_address[idx];
+                this->final_addresses[args[2]] = final_address[idx];
             }
         }
     }
     else if(!args[1].compare("U")) { //busca pela primeira ocorrência na tabela
         main_result = "Busca em " + args[2] + " pelo critério " + args[3] + "\n\n";
+        int inital_address, final_address;
         string result;
-        result = tbl.query_one(args[3]);
+        result = tbl.query_one(args[3], inital_address, final_address);
         if (result.empty()) {
             main_result += "Nenhum registro encontrado\n\n";;
         } else {
+            this->initial_addresses[args[2]] = inital_address;
+            this->final_addresses[args[2]] = final_address;
             main_result += "Registro encontrado:\n\n" + result;
         }
     }
@@ -59,8 +66,11 @@ int registry_worker::AR(vector<string> args, table tbl)
 }
 
 int registry_worker::RR(vector<string> args, table tbl)
-{ //remove registro da tabela
-    //tbl.invalidate_line(args[2]);
+{
+
+    tbl.invalidate_line(initial_addresses[args[1]], final_addresses[args[1]]);
+
+    return 0;
 }
 
 int registry_worker::get_num_fields(string func)

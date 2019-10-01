@@ -25,6 +25,8 @@ private:
     int BR(vector<string> arg, table tbl);
     int AR(vector<string> arg, table tbl);
     int RR(vector<string> arg, table tbl);
+    map<string, int> initial_addresses;
+    map<string, int> final_addresses;
 
 };
 
