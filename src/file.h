@@ -1,6 +1,7 @@
 #include <string>
 #include <fstream>
 #include <variant>
+#include <tuple>
 
 using namespace std;
 
@@ -17,7 +18,7 @@ public:
     metafile(string file_path);
     ~metafile();
     bool insert_int(int a);
-    bool insert_line(string line); //insere uma linha nova no arquivo
+    bool insert_line(string line, vector<tuple<int,int>> available = vector<tuple<int, int>>()); //insere uma linha nova no arquivo
     bool remove_line(string line); //remove linha do arquivo
     bool invalidate_line(string line); //marca linha como inválida e disponível para inserção
     bool show_metadata(string name); //apresenta os metadados da tabela "query"
@@ -32,6 +33,7 @@ private:
     string file_name;
     ifstream *_file;
     bool verify_line_existence(string line);
+    bool rewrite_ints_without(int deleted, vector<tuple<int,int>> available);
 };
 
 #endif

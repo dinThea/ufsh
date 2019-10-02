@@ -29,11 +29,38 @@ metafile::~metafile() {
     }
 }
 
-bool metafile::insert_line(string line) { 
+bool metafile::rewrite_ints_without(int deleted, vector<tuple<int,int>> available) {
+    
+    int i = 0, init, end;
+    ofstream _deleted;
+    string name = file_name;
+    for (int j = 0; j < 5; j++) name.pop_back();
+    remove(string(name+"_deleted.meta").c_str());
+
+    _deleted.open(name+"_deleted.meta", ios::binary);
+    _deleted.seekp(0);
+    
+    for (auto addrs: available) {
+        tie (init, end) = addrs;
+        if (deleted != i) {
+            cout << i << endl;
+            _deleted.write((char*) &init, sizeof(init));
+            _deleted.write((char*) &end, sizeof(end));        
+        }
+
+        i++;
+    }
+
+    _deleted.close();
+
+    return true;
+}
+
+bool metafile::insert_line(string line, vector<tuple<int,int>> available) { 
     ofstream file;
     vector<string> types;
     vector<string> splitted_input;
-    file.open(file_name, ios::binary | ios_base::app);
+    file.open(file_name, fstream::binary | fstream::out | fstream::in);
     int n;
     float m;
     string input;
@@ -46,11 +73,47 @@ bool metafile::insert_line(string line) {
     } else{ 
         //senão insere como binario
         file.seekp(0,file.end);
-        int len=file.tellp();
+        long len = file.tellp();
         file.seekp(len);
         types=this->get_types(); //chama metodo que verifica os tipos da tabela
-        int addr = (int)file.tellp();
+        long addr = file.tellp();
         string stop = "separatoritem";
+        //size verification loop
+        int size_bytes = 0;
+        size_bytes+=sizeof(addr) + stop.size();
+        for(int i=0;i<types.size();i++){
+            if((!types[i].compare("STR")) || (!types[i].compare("BIN"))){
+                input = splitted_input[i];
+                size_bytes+=input.size();
+            }else if(!types[i].compare("INT")){
+                n=stoi(splitted_input[i]);
+                size_bytes+=sizeof(n);
+            }else if(!types[i].compare("FLT")){
+                m=stof(splitted_input[i]);
+                size_bytes+=sizeof(m);
+            }
+            size_bytes+=stop.size();        
+        }
+        size_bytes+=stop.size();
+        int deleted = -1, i = 0;
+        for (auto tpl: available) {
+            int init, end;
+            tie (init, end) = tpl;
+            if (size_bytes <= (end - init + 1)) {
+                file.seekp(init);
+                deleted = i;
+                break;
+            }
+            i++;
+        }
+
+        if (deleted != -1) {
+            rewrite_ints_without(deleted, available);
+        } else {
+            file.seekp(len);        
+        }
+        addr = file.tellp();
+        //writting loop
         file.write((char *) &addr, sizeof(addr));
         file.write(stop.c_str(), stop.size());
         for(int i=0;i<types.size();i++){
@@ -79,6 +142,8 @@ bool metafile::insert_int(int a) {
 
     file.open(file_name, ios::binary | ios_base::app);
     file.write((char*)&a, sizeof(a));
+
+    file.close();
 }
 
 bool metafile::remove_line(string query) { 
@@ -198,7 +263,7 @@ string metafile::find_first_binary(int index, string value, vector<string> type,
             string addr = *item_i;
             int addr_value = bytes_to_int(addr);
             ++item_i;
-            result = "";
+            result = to_string(addr_value) + " | ";
             for (; item_i != end; ++item_i) {
                 if ((!type[idx].compare("STR")) || (!type[idx].compare("BIN"))){
                     string input = *item_i;
@@ -287,9 +352,11 @@ vector<string> metafile::find_many_binary(int index, string value, vector<string
 
         if (index <= distance(item_i, end)) {
             int idx = 0;
-            string result = "";
+            string result;
             string addr = *item_i;
             int addr_value = bytes_to_int(addr);
+            
+            result = to_string(addr_value) + " | ";
             ++item_i;
             for (; item_i != end; ++item_i) {
                 if ((!type[idx].compare("STR")) || (!type[idx].compare("BIN"))){

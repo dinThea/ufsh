@@ -112,6 +112,8 @@ vector<tuple<int,int>> table::load_deleted() {
         count ++;
         last = bytes_to_int(string(buff));
     } 
+
+    _deleted.close();
     return results;
 
 }
@@ -155,8 +157,9 @@ bool table::del() {
 
 bool table::insert_one(string args, string reg_name) {
     this->name = reg_name;
+    vector<tuple<int, int>> addresses = load_deleted();
     metafile _specific("meta/"+this->name+".meta");
-    _specific.insert_line(args);
+    _specific.insert_line(args, addresses);
 
     return true;
 }
