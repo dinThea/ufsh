@@ -1,7 +1,8 @@
 #include <vector>
 #include <map>
 #include <string>
-#include <variant>
+#include <algorithm>
+#include <boost/variant.hpp>
 #include <fstream>
 #include <tuple>
 #include <bits/stdc++.h>
@@ -10,7 +11,6 @@
 #include "file.h"
 
 using namespace std;
-
 vector<string> split(string arg, string separator) {
     
     vector<string> splitted_input;
@@ -26,7 +26,7 @@ registry::registry(string arg, vector<string> types, vector<string> fields) {
 
     if (!args.empty()) {
         for (int unsigned i = 0; i < args.size(); i++) {
-            if (types[i].compare("INT")) {
+            if (types[i].compare("INT") || types[i].compare("INT-H") || types[i].compare("INT-A")) {
                 this->row[fields[i]] = stoi(args[i]);                
             } else if (types[i].compare("STR")) {
                 this->row[fields[i]] = args[i];                
@@ -40,7 +40,7 @@ registry::registry(string arg, vector<string> types, vector<string> fields) {
 
 }
 
-map<string, variant<float, string, int, char>> registry::get_row() {
+map<string, boost::variant<float, string, int, char>> registry::get_row() {
 
     return this->row;
 
@@ -205,7 +205,7 @@ bool table::verify_fields(string result) {
     vector<string> fields;
     boost::split(fields, result, boost::is_any_of(":"));
     for (int i = 0; i < fields.size(); i++) {
-        if (this->type_fields[i].compare("INT")) {
+        if (this->type_fields[i].compare("INT") || this->type_fields[i].compare("INT-H") || this->type_fields[i].compare("INT-B")) {
             try {
                 stoi(fields[i]);
             }
@@ -260,6 +260,53 @@ vector<string> table::query_many(string query, vector<int> & initial_address, ve
 
     return lines;
 
+}
+
+vector<string> table::get_fields(){ 
+    return this->fields;
+}
+vector<string> table::get_type_fields(){ 
+    return this->type_fields;
+}
+
+string table::generate_table_line() {
+    string line = this->get_name() + " ";
+    for (int i = 0; i < this->fields.size(); i++) {
+        line += this->type_fields[i] + ":" + this->fields[i];
+        if (i != this->fields.size() - 1) {
+            line += ";";
+        }
+    }
+
+    return line;
+} 
+
+bool table::add_index(string field, string type) {
+    vector<string>::iterator it;
+    
+    string old_line = this->generate_table_line();
+    it = find(this->fields.begin(), this->fields.end(), field);
+    int position = it - this->fields.begin();
+    this->type_fields[position] = type;
+
+    string new_line = this->generate_table_line();
+    metafile _metafile("meta/tables.meta");
+
+    _metafile.change_line(old_line, new_line);
+}
+
+bool table::rm_index(string field) {
+    vector<string>::iterator it;
+    
+    string old_line = this->generate_table_line();
+    it = find(this->fields.begin(), this->fields.end(), field);
+    int position = it - this->fields.begin();
+    this->type_fields[position] = "INT";
+
+    string new_line = this->generate_table_line();
+    metafile _metafile("meta/tables.meta");
+
+    _metafile.change_line(old_line, new_line);
 }
 
 // bool table::insert_field(string field) {

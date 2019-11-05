@@ -7,6 +7,7 @@
 #include <iterator>
 #include <regex>
 #include "file.h"
+#include "btree.h"
 using namespace std;
 
 metafile::metafile(string file_path) {
@@ -17,6 +18,7 @@ metafile::metafile(string file_path) {
         ofstream new_file;
         new_file.open(file_path, ios::binary);
         new_file.close();
+        this->new_file = true;
     }
     (*this->_file).open(file_path, ios::binary);
 
@@ -146,6 +148,18 @@ bool metafile::insert_int(int a) {
     file.close();
 }
 
+unsigned long int metafile::read_bytes(unsigned long int addr) {
+    (*this->_file).seekg(addr);
+    unsigned long int res;
+    (*this->_file).read(reinterpret_cast<char *>(&res), sizeof(res));
+    return res;
+}
+
+unsigned long int metafile::tellpos() {
+    return (*this->_file).tellg();
+} 
+
+
 bool metafile::remove_line(string query) { 
 
     ofstream _new;
@@ -157,6 +171,32 @@ bool metafile::remove_line(string query) {
         if (line.find(query)) {
             _new << line << endl; // line.replace(line.find(query), query.length(), "NULL") << endl;
         } else {
+            cout << query << endl; 
+            find = true;
+        }
+    }
+    _new.close();
+    (*this->_file).close();
+    remove(this->file_name.c_str());
+    rename("meta/temp.meta", this->file_name.c_str());
+    (*this->_file).open(this->file_name);
+
+    return find;
+
+}
+
+bool metafile::change_line(string query, string new_line) { 
+
+    ofstream _new;
+    bool find = false;
+    _new.open("meta/temp.meta");
+    (*this->_file).seekg(0);
+    string line;
+    while (getline((*this->_file), line)) {
+        if (line.find(query)) {
+            _new << line << endl; // line.replace(line.find(query), query.length(), "NULL") << endl;
+        } else {
+            _new << new_line << endl;
             cout << query << endl; 
             find = true;
         }
@@ -397,6 +437,56 @@ vector<string> metafile::find_many_binary(int index, string value, vector<string
     }
 
     return results;
+}
+
+bool metafile::index_entries(int idx, chunk tree, vector<int> deleted){ 
+
+    (*this->_file).seekg(0);
+    string line;
+    const string s((istreambuf_iterator<char>((*this->_file))), istreambuf_iterator<char>());
+    
+    std::regex ws_re(SEPARATOR_LINE);
+    std::sregex_token_iterator end;
+
+    for (std::sregex_token_iterator i(s.begin(), s.end(), ws_re, -1); i != end; ++i) {
+        
+        std::regex ws_re(SEPARATOR_ITEM);
+        string line = *i;
+
+        std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
+
+        if (idx <= distance(item_i, end)) {
+            int idx = 0;
+            string addr = *item_i;
+            long int addr_value = bytes_to_int(addr);
+            long int entry;
+            ++item_i;
+            for (; item_i != end; ++item_i) {
+                if (idx == idx) {
+                    entry = 0;
+                    long int multiplier = 0;
+                    string a = (*item_i);
+                    for (auto c: a) {
+                        entry = long(entry | (unsigned char)(c) << multiplier);
+                        multiplier += 8;
+                    }
+                }
+                idx++;
+            }
+
+            vector<int>::iterator it = find(deleted.begin(), deleted.end(), addr_value);
+            if (it == deleted.end()) {
+                long int root_addr = 0;
+                cout << "inserting: " << endl;
+                cout << root_addr << " " << entry << " " << addr_value << endl;
+                tree.insert(root_addr, entry, addr_value);
+                tree.update();
+            }
+        }
+
+    }
+
+    return true;
 }
 
 

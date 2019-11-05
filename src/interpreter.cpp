@@ -3,7 +3,6 @@
 #include <iostream>
 #include <fstream>
 #include <boost/algorithm/string/join.hpp>
-
 #include "registry_worker.h"
 #include "table_worker.h"
 #include "index_worker.h"

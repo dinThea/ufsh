@@ -1,5 +1,7 @@
 #include "worker.h"
 #include "table.h"
+#include "file.h"
+#include <algorithm>
 #include <string>
 #include <vector>
 #include <map> 
