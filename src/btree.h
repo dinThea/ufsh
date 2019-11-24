@@ -5,9 +5,12 @@
 #include <variant>
 #include "table.h"
 #include <vector>
+#include <tuple>
 #include <string>
 
 #define N 4
+
+void show_tree(chunk tree);
 
 class chunk
 {
@@ -32,6 +35,7 @@ private:
     bool load_child_chunk(int idx);
 public:
 
+    void show() { show_tree(*this); }
     // A utility function to insert a new key in the subtree rooted with 
     // this node. The assumption is, the node must be non-full when this 
     // function is called 
@@ -56,6 +60,7 @@ public:
     long int insert(long int & root_addr, long int value, long int ref);
     chunk(string tree_name);
     bool load_addr_chunk(long int addr, bool no_update=false);
+    long int query_address(int k, long int, int, vector<tuple<int, int>>);
     bool is_root();
     bool move_to_address(long int idx) { return this->load_addr_chunk(idx); };
     bool move_to_root();
@@ -65,6 +70,8 @@ public:
     vector<long int> get_child();
     int is_leaf();
     long int searchforleaf(int k, long int &, long int, int);
+    long int searchforvalue(int k, long int &, long int, int, int&);
+
 };
 
 #endif

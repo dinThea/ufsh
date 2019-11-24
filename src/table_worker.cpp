@@ -9,6 +9,9 @@ int RT(vector<string> args) { //remove tabela. EX: RT CLIENTES
     cout << "Deletando tabela " << args[1] << endl;
 
     table _table(args[1], false);
+    if (_table.fail()) {
+        return 0;
+    }
     bool res = _table.del();
 
     cout << "meta/"+args[1]+".meta" << endl;

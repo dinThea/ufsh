@@ -8,9 +8,8 @@ int registry_worker::IR(vector<string> args, table tbl)
     cout << "Inserindo Registro na tabela: " << args[1] << endl;
     cout << "Com os Registros: " << args[2] << endl;
 
-    tbl.insert_one(args[2], args[1]);
+    return tbl.insert_one(args[2], args[1])?0:1;
 
-    return 0;
 }
 
 int registry_worker::BR(vector<string> args, table tbl)
@@ -68,6 +67,12 @@ int registry_worker::AR(vector<string> args, table tbl)
 int registry_worker::RR(vector<string> args, table tbl)
 {
 
+    for (auto type : tbl.get_type_fields()) {
+        if (!type.compare("INT-H")) {
+            cout << "a remoção de registros em tabelas com hash é proibida" << endl;
+            return 0;
+        }
+    }
     tbl.invalidate_line(initial_addresses[args[1]], final_addresses[args[1]]);
 
     return 0;

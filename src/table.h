@@ -35,8 +35,10 @@ public:
     string query_one(string query, int & inital_address, int & final_address); //busca pela primeira ocorrência na tabela
     vector<string> query_many(string query, vector<int> & inital_address, vector<int> & final_address); //busca por todas as ocorrências na tabela
     string get_name();
+    bool fail();
     vector<tuple<int,int>> load_deleted();
 private:
+    bool error;
     bool insert_field(string field);
     void load_fields();
     bool verify_fields(string result);

@@ -1,6 +1,6 @@
 all: ufsh
 
-CFLAGS = -W -m64 -Wall -std=c++1z
+CFLAGS = -W -m64 -Wall -std=c++1z -lboost_filesystem -lboost_system
 
 ufsh: makedir/main.o makedir/interpreter.o makedir/table.o makedir/registry_worker.o makedir/table_worker.o makedir/index_worker.o makedir/file.o makedir/btree.o
 	g++ -o ufsh makedir/main.o makedir/file.o makedir/interpreter.o makedir/table.o makedir/registry_worker.o makedir/table_worker.o makedir/index_worker.o makedir/btree.o $(CFLAGS)

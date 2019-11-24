@@ -25,13 +25,13 @@ metafile::metafile(string file_path) {
 }
 
 metafile::~metafile() {
-    if (verify_file_existence(this->file_name)) {
+    if (!verify_file_existence(this->file_name)) {
         (*this->_file).close();
         delete this->_file;
-    }
+    } 
 }
 
-bool metafile::rewrite_ints_without(int deleted, vector<tuple<int,int>> available) {
+bool metafile::rewrite_ints_without(int deleted, long int new_initial, vector<tuple<int,int>> available) {
     
     int i = 0, init, end;
     ofstream _deleted;
@@ -45,9 +45,12 @@ bool metafile::rewrite_ints_without(int deleted, vector<tuple<int,int>> availabl
     for (auto addrs: available) {
         tie (init, end) = addrs;
         if (deleted != i) {
-            cout << i << endl;
             _deleted.write((char*) &init, sizeof(init));
             _deleted.write((char*) &end, sizeof(end));        
+        } else if (new_initial != -1) {
+            int newi = new_initial;
+            _deleted.write((char*) &(newi), sizeof(newi));
+            _deleted.write((char*) &end, sizeof(end));
         }
 
         i++;
@@ -56,17 +59,19 @@ bool metafile::rewrite_ints_without(int deleted, vector<tuple<int,int>> availabl
     _deleted.close();
 
     return true;
+
 }
 
 bool metafile::insert_line(string line, vector<tuple<int,int>> available) { 
+    
     ofstream file;
     vector<string> types;
+    vector<string> keys;
     vector<string> splitted_input;
     file.open(file_name, fstream::binary | fstream::out | fstream::in);
     int n;
     float m;
     string input;
-
     boost::split(splitted_input, line, boost::is_any_of(";"));
     if(!file_name.compare("meta/tables.meta")){ //se arquivo a ser aberto for o de metadados insere como txt
         
@@ -78,19 +83,25 @@ bool metafile::insert_line(string line, vector<tuple<int,int>> available) {
         long len = file.tellp();
         file.seekp(len);
         types=this->get_types(); //chama metodo que verifica os tipos da tabela
+        keys=this->get_keys();
         long addr = file.tellp();
         string stop = "separatoritem";
         //size verification loop
         int size_bytes = 0;
         size_bytes+=sizeof(addr) + stop.size();
         for(int i=0;i<types.size();i++){
+
             if((!types[i].compare("STR")) || (!types[i].compare("BIN"))){
                 input = splitted_input[i];
                 size_bytes+=input.size();
-            }else if(!types[i].compare("INT")){
+            } else if (!types[i].compare("INT") || !types[i].compare("INT-A")) {
                 n=stoi(splitted_input[i]);
                 size_bytes+=sizeof(n);
-            }else if(!types[i].compare("FLT")){
+            } else if (!types[i].compare("INT-H")) {
+                cout << "inserção não permitida" << endl;
+                file.close();
+                return true;
+            } else if(!types[i].compare("FLT")){
                 m=stof(splitted_input[i]);
                 size_bytes+=sizeof(m);
             }
@@ -98,24 +109,27 @@ bool metafile::insert_line(string line, vector<tuple<int,int>> available) {
         }
         size_bytes+=stop.size();
         int deleted = -1, i = 0;
+        long int new_initial;
         for (auto tpl: available) {
             int init, end;
             tie (init, end) = tpl;
             if (size_bytes <= (end - init + 1)) {
                 file.seekp(init);
                 deleted = i;
+                new_initial = init+size_bytes-1 == end ? init+size_bytes : -1; 
                 break;
             }
             i++;
         }
 
         if (deleted != -1) {
-            rewrite_ints_without(deleted, available);
+            rewrite_ints_without(deleted, new_initial, available);
         } else {
             file.seekp(len);        
         }
         addr = file.tellp();
         //writting loop
+
         file.write((char *) &addr, sizeof(addr));
         file.write(stop.c_str(), stop.size());
         for(int i=0;i<types.size();i++){
@@ -123,6 +137,20 @@ bool metafile::insert_line(string line, vector<tuple<int,int>> available) {
                 input = splitted_input[i];
                 file.write(input.c_str(), input.size());
             }else if(!types[i].compare("INT")){
+                n=stoi(splitted_input[i]);
+                file.write( (char*) &n, sizeof(n));
+            }else if(!types[i].compare("INT-A")){
+                string name = this->file_name;
+                name.erase(0,5);
+                name.erase(name.end() - 5, name.end());
+                chunk tree(name + "_" + keys[i]);
+                show_tree(tree);
+                n=stoi(splitted_input[i]);
+                file.write( (char*) &n, sizeof(n));
+                long int root = 0;
+                tree.insert(root, n, addr);
+                tree.show();
+            }else if(!types[i].compare("INT-H")){
                 n=stoi(splitted_input[i]);
                 file.write( (char*) &n, sizeof(n));
             }else if(!types[i].compare("FLT")){
@@ -193,11 +221,10 @@ bool metafile::change_line(string query, string new_line) {
     (*this->_file).seekg(0);
     string line;
     while (getline((*this->_file), line)) {
-        if (line.find(query)) {
+        if (line.find(query) == string::npos) {
             _new << line << endl; // line.replace(line.find(query), query.length(), "NULL") << endl;
         } else {
             _new << new_line << endl;
-            cout << query << endl; 
             find = true;
         }
     }
@@ -215,7 +242,10 @@ bool metafile::verify_file_existence(string file_path) {
     
     ifstream test;
     test.open(file_path);
-    return !test.good();
+
+    bool good = !test.good();
+    test.close();
+    return good;
 
 }
 
@@ -439,7 +469,7 @@ vector<string> metafile::find_many_binary(int index, string value, vector<string
     return results;
 }
 
-bool metafile::index_entries(int idx, chunk tree, vector<int> deleted){ 
+bool metafile::index_entries(int index, chunk tree, vector<int> deleted){ 
 
     (*this->_file).seekg(0);
     string line;
@@ -455,14 +485,14 @@ bool metafile::index_entries(int idx, chunk tree, vector<int> deleted){
 
         std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
 
-        if (idx <= distance(item_i, end)) {
+        if (index <= distance(item_i, end)) {
             int idx = 0;
             string addr = *item_i;
             long int addr_value = bytes_to_int(addr);
             long int entry;
             ++item_i;
             for (; item_i != end; ++item_i) {
-                if (idx == idx) {
+                if (index == idx) {
                     entry = 0;
                     long int multiplier = 0;
                     string a = (*item_i);
@@ -470,25 +500,130 @@ bool metafile::index_entries(int idx, chunk tree, vector<int> deleted){
                         entry = long(entry | (unsigned char)(c) << multiplier);
                         multiplier += 8;
                     }
+                    vector<int>::iterator it = find(deleted.begin(), deleted.end(), addr_value);
+                    if (it == deleted.end()) {
+                        long int root_addr = 0;
+                        tree.insert(root_addr, entry, addr_value);
+                        tree.update();
+                    }
                 }
                 idx++;
             }
 
-            vector<int>::iterator it = find(deleted.begin(), deleted.end(), addr_value);
-            if (it == deleted.end()) {
-                long int root_addr = 0;
-                cout << "inserting: " << endl;
-                cout << root_addr << " " << entry << " " << addr_value << endl;
-                tree.insert(root_addr, entry, addr_value);
-                tree.update();
+        }
+
+    }
+
+    tree.show();
+
+    return true;
+}
+
+
+bool metafile::index_entries_hash(int index, string fl, vector<int> deleted){ 
+
+    (*this->_file).seekg(0);
+    string line;
+    
+    string buff_item;
+    string buff_line;
+    vector<string> items_line;
+
+    char b;
+    int idx = 0;
+    items_line.push_back("");
+    long int entry;
+    long int add;
+    hash<int> hash_fn;
+
+    while ((*this->_file).get(b)) {
+
+        items_line[idx].push_back(b);
+        buff_item.push_back(b);
+        buff_line.push_back(b);
+        string sep_item(SEPARATOR_ITEM);
+        string sep_line(SEPARATOR_LINE);
+
+        if (!buff_item.compare(sep_item)) {
+
+            items_line[idx].erase(items_line[idx].end()-sep_item.size(), items_line[idx].end());
+            
+            if (index + 1 == idx){
+                entry = 0;
+                int multiplier = 0;
+                string a = items_line[idx];
+                for (auto c: a) {
+                    entry = int(entry | (unsigned char)(c) << multiplier);
+                    multiplier += 8;
+                }
             }
+
+            if (0 == idx){
+                add = 0;
+                int multiplier = 0;
+                string a = items_line[idx];
+                for (auto c: a) {
+                    add = int(add | (unsigned char)(c) << multiplier);
+                    multiplier += 8;
+                }
+            }
+
+            items_line.push_back("");
+            idx++;
+            buff_item.erase(buff_item.begin(), buff_item.end());
+            buff_line.erase(buff_line.begin(), buff_line.end());
+        } 
+        
+        if (!buff_line.compare(SEPARATOR_LINE)) {
+            
+            bool found_addr = false;
+            string beginner = "beginshere";
+            int counter = 0;
+
+            ifstream verification(fl, ios_base::binary);
+            verification.seekg(hash_fn(entry)*(sizeof(beginner.c_str())+sizeof(long int)*2));
+            char * buffer = new char [beginner.size()];
+            while (!found_addr) {
+                verification.read ((char *)&buffer[0],beginner.size()*sizeof(char));
+                string bff(buffer);
+                if (bff.size() > beginner.size()) {
+                    bff.erase(beginner.size(), bff.size());
+                }
+                if (!bff.compare(beginner)) {
+                    counter++;
+                    verification.seekg(hash_fn(entry+counter)*(sizeof(beginner.c_str())+sizeof(long int)*2));
+                } else {
+                    found_addr = true;
+                }
+            }
+            
+            verification.close();
+            ofstream insertion(fl, ios_base::binary);
+
+            insertion.seekp(hash_fn(entry+counter)*(sizeof(beginner.c_str())+sizeof(long int)*2));
+            insertion.write( beginner.c_str(), beginner.size()*sizeof(char));
+            insertion.write( (char*) &entry, sizeof(entry));
+            insertion.write( (char*) &add, sizeof(add));
+
+            insertion.close();
+
+            idx = 0;
+            items_line.clear();
+            items_line.push_back("");
+        }
+
+        if (buff_item.size() == sep_item.size()) {
+            buff_item.erase(0,1);
+        }
+
+        if (buff_line.size() == sizeof(SEPARATOR_LINE)/sizeof(char)) {
+            buff_line.erase(0,1);            
         }
 
     }
 
     return true;
 }
-
 
 vector<string> metafile::find_all(string query){ 
     (*this->_file).seekg(0);
@@ -510,8 +645,44 @@ vector<string> metafile::get_types(){
     vector<string>types; // vetor que recebe os tipos existentes na tabela
     vector<string>table;
     vector<string>splitted_input;
+    ifstream file;
+    metafile * _file = new metafile("meta/tables.meta");
+    _file->show();
+    delete _file;
+
+    file.open("meta/tables.meta", ios::in);
+    
+    string line;
+    bool found =false;
+    getline((file), line);
+
+    boost::split(table, file_name, boost::is_any_of("/."));  //pega o nome da tabela a ser acessada
+    while ((!(file.eof())) && (!found) && line.compare("")) {
+        if (!line.find(table[1])) {
+            found=true;
+            boost::split(splitted_input, line, boost::is_any_of(":; "));
+        }
+        getline((file), line);
+    }
+
+    for(int i=0;i<splitted_input.size();i++){ //coloca os tipos no vector types
+        if((!splitted_input[i].compare("STR")) || (!splitted_input[i].compare("FLT")) || (!splitted_input[i].compare("BIN")) || (!splitted_input[i].compare("INT"))  || (!splitted_input[i].compare("INT-A"))  || (!splitted_input[i].compare("INT-H"))){
+            types.push_back(splitted_input[i]);
+        }
+    }
+
+    file.close();
+
+    return types;
+}
+
+vector<string> metafile::get_keys(){
+    vector<string>keys; // vetor que recebe as chaves existentes na tabela
+    vector<string>table;
+    vector<string>splitted_input;
     fstream file;
-    file.open("meta/tables.meta");
+    file.open("meta/tables.meta", ios::in);
+
     string line;
     bool found =false; 
 
@@ -524,11 +695,13 @@ vector<string> metafile::get_types(){
         }
     }
 
-    for(int i=0;i<splitted_input.size();i++){ //coloca os tipos no vector types
-        if((!splitted_input[i].compare("STR")) || (!splitted_input[i].compare("FLT")) || (!splitted_input[i].compare("BIN")) || (!splitted_input[i].compare("INT"))){
-            types.push_back(splitted_input[i]);
+    for(int i=0;i<splitted_input.size();i++){ //coloca as chaves no vector keys
+        if((splitted_input[i].compare(table[1])) && (splitted_input[i].compare("STR")) && (splitted_input[i].compare("FLT")) && (splitted_input[i].compare("BIN")) && (splitted_input[i].compare("INT")) && (splitted_input[i].compare("INT-A"))  && (splitted_input[i].compare("INT-H"))){
+            keys.push_back(splitted_input[i]);
         }
     }
 
-    return types;
+    file.close();
+
+    return keys;
 }

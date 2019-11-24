@@ -35,11 +35,14 @@ vector<string> interpreter::read() { //lê comando do terminal
     string input;
     vector<string> splitted_input;
     cout << "[SHELL>$] ";
+    int couter = 0; 
     do {
         if (!this->_input.compare("cin")){
             getline(cin, input);
         } else {
             getline((*this->_file), input);
+            if (couter < 3) cout << input << "" << endl;
+            couter++;
             if ((*this->_file).eof()) {
                 this->eof = true;
             }
@@ -106,7 +109,7 @@ vector<string> interpreter::read() { //lê comando do terminal
             transform(splitted_input[2].begin(), splitted_input[2].end(), splitted_input[2].begin(),::toupper);
         }
     }
-    
+
     return splitted_input;
 
 }
