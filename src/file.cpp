@@ -10,6 +10,17 @@
 #include "btree.h"
 using namespace std;
 
+long int char_to_int(string item) {
+    int add = 0;
+    int multiplier = 0;
+    string a = item;
+    for (auto c: a) {
+        add = int(add | (unsigned char)(c) << multiplier);
+        multiplier += 8;
+    }
+
+    return add;
+}
 metafile::metafile(string file_path) {
     
     this->_file = new ifstream;
@@ -388,83 +399,163 @@ vector<string> metafile::find_many_binary(int index, string value, vector<string
 
     (*this->_file).seekg(0);
     string line;
-    bool found = false;
-    vector<string> results;
-    const string s((istreambuf_iterator<char>((*this->_file))), istreambuf_iterator<char>());
     
-    std::regex ws_re(SEPARATOR_LINE);
-    std::sregex_token_iterator end;
-    bool find_in_line = false;
+    vector<string> results;
+    string buff_item;
+    string buff_line;
+    vector<string> items_line;
 
-    for (std::sregex_token_iterator i(s.begin(), s.end(), ws_re, -1); i != end; ++i) {
+    char b;
+    int idx = 0;
+    items_line.push_back("");
+    long int entry;
+    long int add;
+
+    int test_indx = 0;
+    while ((*this->_file).get(b)) {
+
+        items_line[idx].push_back(b);
+        buff_item.push_back(b);
+        buff_line.push_back(b);
+        string sep_item(SEPARATOR_ITEM);
+        string sep_line(SEPARATOR_LINE);
+
+        if (!buff_item.compare(sep_item)) {
+
+            items_line[idx].erase(items_line[idx].end()-sep_item.size(), items_line[idx].end());
+
+            items_line.push_back("");
+            idx++;
+            buff_item.erase(buff_item.begin(), buff_item.end());
+            buff_line.erase(buff_line.begin(), buff_line.end());
+        } 
         
-        if (find_in_line) {
-            if (i != end) {
-                std::regex ws_re(SEPARATOR_ITEM);
-                string line = *i;
-                string result = "";
-        
-                std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
-        
-                int idx = 0;
-                string addr = *item_i;
-                size.push_back(bytes_to_int(addr) - 1);
-            } else {
-                size.push_back((int) (*this->_file).tellg() - 1);
-            }
-        }
-
-        std::regex ws_re(SEPARATOR_ITEM);
-        string line = *i;
-        find_in_line = false;
-
-        std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
-
-        if (index <= distance(item_i, end)) {
-            int idx = 0;
-            string result;
-            string addr = *item_i;
-            int addr_value = bytes_to_int(addr);
+        if (!buff_line.compare(SEPARATOR_LINE)) {
             
-            result = to_string(addr_value) + " | ";
-            ++item_i;
-            for (; item_i != end; ++item_i) {
-                if ((!type[idx].compare("STR")) || (!type[idx].compare("BIN"))){
-                    string input = *item_i;
-                    if (!value.compare(input)) {
-                        find_in_line = true;
-                    }
-                    result += input + " | ";
-                } else if(!type[idx].compare("INT")){
-                    int entry = 0;
-                    int multiplier = 0;
-                    string a = (*item_i);
-                    for (auto c: a) {
-                        entry = int(entry | (unsigned char)(c) << multiplier);
-                        multiplier += 8;
-                    }
-                    if (!value.compare(to_string(entry))) {
-                        find_in_line = true;
-                    }
-                    result += to_string(entry) + " | ";
-                } else if(!type[idx].compare("FLT")){
-                    // m=stof(splitted_input[index]);
+            items_line[idx].erase(items_line[idx].end()-sep_line.size(), items_line[idx].end());
+            int counter = 0;
+            
+            long int addr = char_to_int(items_line[0]);
+            if ((!type[index].compare("STR")) || (!type[index].compare("BIN"))){
+                string input = items_line[index+1];
+                if (!value.compare(input)) {
+                    results.push_back(to_string(addr));
                 }
-                idx++;
+            } else if(!type[index].compare("INT")){
+                int entry = 0;
+                int multiplier = 0;
+                string a = (items_line[index+1]);
+                for (auto c: a) {
+                    entry = int(entry | (unsigned char)(c) << multiplier);
+                    multiplier += 8;
+                }
+                if (!value.compare(to_string(entry))) {
+                    results.push_back(to_string(addr));
+                }
+                cout << entry << endl;
+            } else if(!type[index].compare("FLT")){
+                // m=stof(splitted_input[index]);
             }
 
-            vector<int>::iterator it = find(deleted.begin(), deleted.end(), addr_value);
-            if (find_in_line && it == deleted.end()) {
-                address.push_back(addr_value);
-                results.push_back(result);
-            }
+            cout << endl;
+
+            idx = 0;
+            items_line.clear();
+            items_line.push_back("");
         }
 
-        if (find_in_line) {
-            size.push_back((int) (*this->_file).tellg() - 1);
+        if (buff_item.size() == sep_item.size()) {
+            buff_item.erase(0,1);
+        }
+
+        if (buff_line.size() == sizeof(SEPARATOR_LINE)/sizeof(char)) {
+            buff_line.erase(0,1);            
         }
 
     }
+    
+
+    // verification.close();
+
+    // (*this->_file).seekg(0);
+    // string line;
+    // bool found = false;
+    // vector<string> results;
+    // const string s((istreambuf_iterator<char>((*this->_file))), istreambuf_iterator<char>());
+    
+    // std::regex ws_re(SEPARATOR_LINE);
+    // std::sregex_token_iterator end;
+    // bool find_in_line = false;
+
+    // for (std::sregex_token_iterator i(s.begin(), s.end(), ws_re, -1); i != end; ++i) {
+        
+    //     if (find_in_line) {
+    //         if (i != end) {
+    //             std::regex ws_re(SEPARATOR_ITEM);
+    //             string line = *i;
+    //             string result = "";
+        
+    //             std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
+        
+    //             int idx = 0;
+    //             string addr = *item_i;
+    //             size.push_back(bytes_to_int(addr) - 1);
+    //         } else {
+    //             size.push_back((int) (*this->_file).tellg() - 1);
+    //         }
+    //     }
+
+    //     std::regex ws_re(SEPARATOR_ITEM);
+    //     string line = *i;
+    //     find_in_line = false;
+
+    //     std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
+
+    //     if (index <= distance(item_i, end)) {
+    //         int idx = 0;
+    //         string result;
+    //         string addr = *item_i;
+    //         int addr_value = bytes_to_int(addr);
+            
+    //         result = to_string(addr_value) + " | ";
+    //         ++item_i;
+    //         for (; item_i != end; ++item_i) {
+    //             if ((!type[idx].compare("STR")) || (!type[idx].compare("BIN"))){
+    //                 string input = *item_i;
+    //                 if (!value.compare(input)) {
+    //                     find_in_line = true;
+    //                 }
+    //                 result += input + " | ";
+    //             } else if(!type[idx].compare("INT")){
+    //                 int entry = 0;
+    //                 int multiplier = 0;
+    //                 string a = (*item_i);
+    //                 for (auto c: a) {
+    //                     entry = int(entry | (unsigned char)(c) << multiplier);
+    //                     multiplier += 8;
+    //                 }
+    //                 if (!value.compare(to_string(entry))) {
+    //                     find_in_line = true;
+    //                 }
+    //                 result += to_string(entry) + " | ";
+    //             } else if(!type[idx].compare("FLT")){
+    //                 // m=stof(splitted_input[index]);
+    //             }
+    //             idx++;
+    //         }
+
+    //         vector<int>::iterator it = find(deleted.begin(), deleted.end(), addr_value);
+    //         if (find_in_line && it == deleted.end()) {
+    //             address.push_back(addr_value);
+    //             results.push_back(result);
+    //         }
+    //     }
+
+    //     if (find_in_line) {
+    //         size.push_back((int) (*this->_file).tellg() - 1);
+    //     }
+
+    // }
 
     return results;
 }
@@ -532,9 +623,12 @@ bool metafile::index_entries_hash(int index, string fl, vector<int> deleted){
     char b;
     int idx = 0;
     items_line.push_back("");
+    hash<int> hash_fn;
+    char * beginner = "beginshere";
     long int entry;
     long int add;
-    hash<int> hash_fn;
+
+    int test_indx = 0;
 
     while ((*this->_file).get(b)) {
 
@@ -577,35 +671,66 @@ bool metafile::index_entries_hash(int index, string fl, vector<int> deleted){
         if (!buff_line.compare(SEPARATOR_LINE)) {
             
             bool found_addr = false;
-            string beginner = "beginshere";
             int counter = 0;
+            cout << entry << endl;
 
             ifstream verification(fl, ios_base::binary);
-            verification.seekg(hash_fn(entry)*(sizeof(beginner.c_str())+sizeof(long int)*2));
-            char * buffer = new char [beginner.size()];
+            verification.seekg(hash_fn(entry)*(strlen(beginner)+sizeof(long int)*2));
             while (!found_addr) {
-                verification.read ((char *)&buffer[0],beginner.size()*sizeof(char));
+                
+                char buffer[strlen(beginner) + 1] = "randominfo";
+                verification.read (buffer,strlen(beginner));
+                buffer[strlen(beginner)] = '\0';
                 string bff(buffer);
-                if (bff.size() > beginner.size()) {
-                    bff.erase(beginner.size(), bff.size());
-                }
+                long int __entry;
+                long int __add;
+                
+                char _entry[sizeof(long int)] = "rand";
+                char _add[sizeof(long int)] = "rand";
+                verification.read((char*)&_entry, sizeof(long int));
+                verification.read((char*)&_add, sizeof(long int));
+                __entry = char_to_int(_entry);
+                __add = char_to_int(_add);
+                
                 if (!bff.compare(beginner)) {
                     counter++;
-                    verification.seekg(hash_fn(entry+counter)*(sizeof(beginner.c_str())+sizeof(long int)*2));
+                    size_t pos = hash_fn(entry+counter)*(strlen(beginner)+sizeof(long int)*2);
+                    verification.seekg(pos);
                 } else {
                     found_addr = true;
                 }
             }
             
             verification.close();
-            ofstream insertion(fl, ios_base::binary);
 
-            insertion.seekp(hash_fn(entry+counter)*(sizeof(beginner.c_str())+sizeof(long int)*2));
-            insertion.write( beginner.c_str(), beginner.size()*sizeof(char));
-            insertion.write( (char*) &entry, sizeof(entry));
-            insertion.write( (char*) &add, sizeof(add));
+            // cout << strlen(beginner) << " " << sizeof(long int) << endl;
+            // cout << hash_fn(entry+counter)*(strlen(beginner)+sizeof(long int)*2) << endl;
+            ifstream in(fl, std::ifstream::ate | std::ifstream::binary);
+            long int file_size = in.tellg();
+            in.close(); 
+            if (hash_fn(entry+counter)*(strlen(beginner)+sizeof(long int)*2) >= file_size) {
 
-            insertion.close();
+                fstream insertion(fl, fstream::binary | fstream::out | fstream::app);
+                string bff(beginner);
+                char a = 0;
+                for (long int i = 0; i < hash_fn(entry+counter)*(strlen(beginner)+sizeof(long int)*2) - file_size; i++) insertion.write((char*)&a, sizeof(char));
+                // insertion.seekp(hash_fn(entry+counter)*(strlen(beginner)+sizeof(long int)*2));
+                insertion.write( bff.c_str(), bff.size());
+                insertion.write( (char*) &entry, sizeof(entry));
+                insertion.write( (char*) &add, sizeof(add));
+                test_indx++;
+                insertion.close();
+            } else {
+                fstream insertion(fl, fstream::binary | fstream::out);
+                string bff(beginner);
+                insertion.seekp(hash_fn(entry+counter)*(strlen(beginner)+sizeof(long int)*2));
+                insertion.write( bff.c_str(), bff.size());
+                insertion.write( (char*) &entry, sizeof(entry));
+                insertion.write( (char*) &add, sizeof(add));
+                test_indx++;
+                insertion.close();
+
+            }
 
             idx = 0;
             items_line.clear();
@@ -624,6 +749,99 @@ bool metafile::index_entries_hash(int index, string fl, vector<int> deleted){
 
     return true;
 }
+
+long int metafile::find_hash(int key, string fl, vector<tuple<int, int>> deleted){ 
+    
+    ifstream verification(fl, ios_base::binary);
+    hash<int> hash_fn;
+    char * beginner = "beginshere";
+    int counter = 0;
+    verification.seekg(0);
+    char buffer[strlen(beginner) + 1];
+    string sep(beginner);
+
+    bool found_addr = false;
+    while (!found_addr) {
+
+        size_t pos = hash_fn(key+counter)*(strlen(beginner)+sizeof(long int)*2);
+        verification.seekg(pos);
+        cout << pos << endl;
+        
+        char buffer[strlen(beginner) + 1] = "randominfo";
+        verification.read (buffer,sep.size());
+        buffer[strlen(beginner)] = '\0';
+        string bff(buffer);
+
+        char _entry[sizeof(long int)] = "rand";
+        char _add[sizeof(long int)] = "rand";
+        verification.read((char*)&_entry, sizeof(long int));
+        verification.read((char*)&_add, sizeof(long int));
+        long int entry = char_to_int(_entry);
+        long int add = char_to_int(_add);
+        
+        cout << buffer << " " << entry << " " << add << endl; 
+        
+        if (!bff.compare(beginner)) {
+            if (entry == key) return add;
+            counter++;
+            size_t pos = hash_fn(key+counter)*(strlen(beginner)+sizeof(long int)*2);
+            verification.seekg(pos);
+        } else {
+            return -1;
+        }
+    }
+
+    verification.close();
+
+}
+
+
+// bool metafile::find_hash(int key, string fl, vector<tuple<int, int>> deleted){ 
+    
+//     ifstream verification(fl, ios_base::binary);
+//     hash<int> hash_fn;
+//     char * beginner = "beginshere";
+//     int counter = 0;
+//     verification.seekg(0);
+//     char buffer[strlen(beginner) + 1];
+//     string sep(beginner);
+
+//     vector <int> keys  {10,20,30,40,70};
+
+//     for (auto key: keys) {
+//         verification.seekg(hash_fn(key)*(strlen(beginner)+sizeof(long int)*2));
+//         bool found_addr = false;
+//         while (!found_addr) {
+
+//             char buffer[strlen(beginner) + 1] = "randominfo";
+//             verification.read (buffer,sep.size());
+//             buffer[strlen(beginner)] = '\0';
+//             string bff(buffer);
+
+//             char _entry[sizeof(long int)] = "rand";
+//             char _add[sizeof(long int)] = "rand";
+//             verification.read((char*)&_entry, sizeof(long int));
+//             verification.read((char*)&_add, sizeof(long int));
+//             long int entry = char_to_int(_entry);
+//             long int add = char_to_int(_add);
+            
+//             cout << buffer << " " << entry << " " << add << endl; 
+            
+//             if (!bff.compare(beginner)) {
+//                 counter++;
+//                 size_t pos = hash_fn(entry+counter)*(strlen(beginner)+sizeof(long int)*2);
+//                 verification.seekg(pos);
+//             } else {
+//                 cout << buffer << _entry << add << endl;
+//                 found_addr = true;
+//             }
+//         }
+//     }
+
+//     verification.close();
+
+// }
+
 
 vector<string> metafile::find_all(string query){ 
     (*this->_file).seekg(0);

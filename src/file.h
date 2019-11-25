@@ -36,7 +36,7 @@ public:
     bool index_entries_hash(int index, string file, vector<int> deleted);
     vector<string> find_all(string query); //encontra todas as ocorrências do elemento "query"
     static bool verify_file_existence(string file_path); //verifica a existência do arquivo
-    bool find_hash(int key, string fl, vector<int> deleted);
+    long int find_hash(int key, string fl, vector<tuple<int,int>> deleted);
     vector <string> get_keys(); //retorna as chaves da tabela
     vector <string> get_types(); //retorna os tipos da tabela
 private:

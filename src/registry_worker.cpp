@@ -5,8 +5,8 @@
 int registry_worker::IR(vector<string> args, table tbl)
 { //insere registro na tabela. EX: IR TABELA CAMPO_DE_DADOS
 
-    cout << "Inserindo Registro na tabela: " << args[1] << endl;
-    cout << "Com os Registros: " << args[2] << endl;
+    // cout << "Inserindo Registro na tabela: " << args[1] << endl;
+    // cout << "Com os Registros: " << args[2] << endl;
 
     return tbl.insert_one(args[2], args[1])?0:1;
 

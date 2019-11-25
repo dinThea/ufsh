@@ -165,7 +165,7 @@ void table::load_fields()
 
     metafile _table("meta/tables.meta");
     string line = _table.find_first(this->name);
-    cout << " LINE " << line << endl;
+    // cout << " LINE " << line << endl;
 
     vector<string> parts;
 
@@ -285,7 +285,6 @@ string table::query_one(string query, int &initial_address, int &final_address)
 
     if (!type_fields[idx].compare("INT-A"))
     {
-        cout << "is tree" << endl;
         chunk tree(this->name + "_" + key_value[0]);
         long int res = tree.query_address((long int)stoi(key_value[1]), -1, 0, addresses);
         if (res != -1)
@@ -296,9 +295,13 @@ string table::query_one(string query, int &initial_address, int &final_address)
         {
             return "";
         }
+    } else if (!type_fields[idx].compare("INT-H")) {
+        metafile _file("meta/"+this->name+".meta");
+        string fl("meta/"+this->name+"_" + key_value[0]+".meta");
+        return to_string(_file.find_hash((long int) stoi(key_value[1]), fl, addresses));
     }
+
     string line = _specific.find_first_binary(idx, key_value[1], this->type_fields, initial_address, final_address, initial_addresses);
-cout << "ad" << endl;
 
     if (this->verify_fields(line))
     {
@@ -356,7 +359,6 @@ vector<string> table::query_many(string query, vector<int> &initial_address, vec
 {
 
     metafile _specific("meta/" + this->name + ".meta");
-
     vector<tuple<int, int>> addresses = load_deleted();
     vector<int> initial_addresses;
     for (auto addr : addresses)
@@ -370,12 +372,12 @@ vector<string> table::query_many(string query, vector<int> &initial_address, vec
     vector<string> key_value;
     boost::split(key_value, query, boost::is_any_of(":"));
     int idx = 0;
+
     for (idx = 0; idx < this->fields.size(); idx++)
     {
         if (this->fields[idx] == key_value[0])
             break;
     }
-
     if (!type_fields[idx].compare("INT-A"))
     {
         cout << "is tree" << endl;
@@ -388,22 +390,12 @@ vector<string> table::query_many(string query, vector<int> &initial_address, vec
         }
 
         return results;
+    } else if (!type_fields[idx].compare("INT-H")) {
+
+    } else {
+        vector<string> lines = _specific.find_many_binary(idx, key_value[1], this->type_fields, initial_address, final_address, initial_addresses);
     }
 
-    vector<string> lines = _specific.find_many_binary(idx, key_value[1], this->type_fields, initial_address, final_address, initial_addresses);
-
-    for (vector<string>::iterator it = lines.begin(); it != lines.end(); it++)
-    {
-        if (this->verify_fields(*it))
-        {
-        }
-        else
-        {
-            lines.erase(it);
-        }
-    }
-
-    return lines;
 }
 
 vector<string> table::get_fields()

@@ -34,7 +34,7 @@ interpreter::~interpreter() {
 vector<string> interpreter::read() { //lê comando do terminal
     string input;
     vector<string> splitted_input;
-    cout << "[SHELL>$] ";
+    // cout << "[SHELL>$] ";
     int couter = 0; 
     do {
         if (!this->_input.compare("cin")){
@@ -119,7 +119,7 @@ void interpreter::exec() { //chama os métodos correspondentes
     vector<string> input;
     do {
         input = read();
-        cout << input[0] << endl;
+        // cout << input[0] << endl;
     } while (run_all(input) && !this->eof);
 
 }
