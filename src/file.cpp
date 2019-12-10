@@ -5,6 +5,7 @@
 #include <vector>
 #include <boost/algorithm/string.hpp>
 #include <iterator>
+#include <cstdio>
 #include <regex>
 #include "file.h"
 #include "btree.h"
@@ -86,7 +87,11 @@ bool metafile::insert_line(string line, vector<tuple<int,int>> available) {
     boost::split(splitted_input, line, boost::is_any_of(";"));
     if(!file_name.compare("meta/tables.meta")){ //se arquivo a ser aberto for o de metadados insere como txt
         
-        file<<line<<endl;
+        file.close();
+        file.open(file_name, fstream::app | fstream::out);
+        file << line+"\n";
+        file.close();
+        return true;
 
     } else{ 
         //senão insere como binario
@@ -101,10 +106,26 @@ bool metafile::insert_line(string line, vector<tuple<int,int>> available) {
         int size_bytes = 0;
         size_bytes+=sizeof(addr) + stop.size();
         for(int i=0;i<types.size();i++){
-
-            if((!types[i].compare("STR")) || (!types[i].compare("BIN"))){
+            if((!types[i].compare("STR"))){
                 input = splitted_input[i];
                 size_bytes+=input.size();
+            } else if (!types[i].compare("BIN")) {
+                
+                cout << splitted_input[i] << endl;
+                FILE *f = fopen(splitted_input[i].c_str(), "r+b");
+                // fseek(f, 0, SEEK_SET);
+                
+                char c;
+                input = "";
+                unsigned char buffer[1];
+                
+                while (fread(buffer,sizeof(buffer),1,f) != NULL) {
+                    input.push_back(buffer[0]);
+                }
+
+                // cout << input << endl;
+                
+                fclose( f );
             } else if (!types[i].compare("INT") || !types[i].compare("INT-A")) {
                 n=stoi(splitted_input[i]);
                 size_bytes+=sizeof(n);
@@ -160,7 +181,6 @@ bool metafile::insert_line(string line, vector<tuple<int,int>> available) {
                 file.write( (char*) &n, sizeof(n));
                 long int root = 0;
                 tree.insert(root, n, addr);
-                tree.show();
             }else if(!types[i].compare("INT-H")){
                 n=stoi(splitted_input[i]);
                 file.write( (char*) &n, sizeof(n));
@@ -290,7 +310,7 @@ void metafile::show() {
     vector<string> splitted_input;
     while ((getline((*this->_file), line))) { //enquanto há linhas para serem lidas
             boost::split(splitted_input, line, boost::is_any_of(" ")); //separa a linha para pegar o nome da tabela
-            cout<<"Tabela : "<<splitted_input[0]<<endl;
+            // cout<<"Tabela : "<<splitted_input[0]<<endl;
     }
 }
 
@@ -320,77 +340,149 @@ int bytes_to_int(string bytes) {
     return entry;
 }
 
-string metafile::find_first_binary(int index, string value, vector<string> type, int & initial_address, int & end_address, vector<int> deleted){ 
+string metafile::find_first_binary(int index, string value, vector<string> type, long int & initial_address, long int & final_address, vector<int> deleted){ 
 
     (*this->_file).seekg(0);
     string line;
-    bool found = false;
-    const string s((istreambuf_iterator<char>((*this->_file))), istreambuf_iterator<char>());
     
-    std::regex ws_re(SEPARATOR_LINE);
-    std::sregex_token_iterator end;
+    string buff_item;
+    string buff_line;
+    vector<string> items_line;
 
-    for (std::sregex_token_iterator i(s.begin(), s.end(), ws_re, -1); i != end; ++i) {
+    char b;
+    int idx = 0;
+    items_line.push_back("");
+    long int entry;
+    long int add;
+
+    int test_indx = 0;
+    while ((*this->_file).get(b)) {
+
+        items_line[idx].push_back(b);
+        buff_item.push_back(b);
+        buff_line.push_back(b);
+        string sep_item(SEPARATOR_ITEM);
+        string sep_line(SEPARATOR_LINE);
+
+        if (!buff_item.compare(sep_item)) {
+
+            items_line[idx].erase(items_line[idx].end()-sep_item.size(), items_line[idx].end());
+
+            items_line.push_back("");
+            idx++;
+            buff_item.erase(buff_item.begin(), buff_item.end());
+            buff_line.erase(buff_line.begin(), buff_line.end());
+        } 
         
-        std::regex ws_re(SEPARATOR_ITEM);
-        string line = *i;
-        bool find_in_line = false;
-        string result = "";
-
-        std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
-
-        if (index <= distance(item_i, end)) {
-            int idx = 0;
-            string addr = *item_i;
-            int addr_value = bytes_to_int(addr);
-            ++item_i;
-            result = to_string(addr_value) + " | ";
-            for (; item_i != end; ++item_i) {
-                if ((!type[idx].compare("STR")) || (!type[idx].compare("BIN"))){
-                    string input = *item_i;
-                    if (!value.compare(input)) {
-                        find_in_line = true;
-                    }
-                    result += input + " | ";
-                } else if(!type[idx].compare("INT")){
-                    int entry = 0;
-                    int multiplier = 0;
-                    string a = (*item_i);
-                    for (auto c: a) {
-                        entry = int(entry | (unsigned char)(c) << multiplier);
-                        multiplier += 8;
-                    }
-                    if (!value.compare(to_string(entry))) {
-                        find_in_line = true;
-                    }
-                    result += to_string(entry) + " | ";
-                } else if(!type[idx].compare("FLT")){
-                    // m=stof(splitted_input[index]);
+        if (!buff_line.compare(SEPARATOR_LINE)) {
+            
+            items_line[idx].erase(items_line[idx].end()-sep_line.size(), items_line[idx].end());
+            int counter = 0;
+            
+            long int addr = char_to_int(items_line[0]);
+            if ((!type[index].compare("STR")) || (!type[index].compare("BIN"))){
+                string input = items_line[index+1];
+                if (!value.compare(input)) {
+                    return to_string(addr);
                 }
-                idx++;
+            } else if(!type[index].compare("INT")){
+                int entry = 0;
+                int multiplier = 0;
+                string a = (items_line[index+1]);
+                for (auto c: a) {
+                    entry = int(entry | (unsigned char)(c) << multiplier);
+                    multiplier += 8;
+                }
+                if (!value.compare(to_string(entry))) {
+                    return to_string(addr);
+                }
+            } else if(!type[index].compare("FLT")){
+                // m=stof(splitted_input[index]);
             }
 
-            vector<int>::iterator it = find(deleted.begin(), deleted.end(), addr_value);
-            if (find_in_line && it == deleted.end()) {
-                ++i;
-                initial_address = addr_value;
-                if (i != end) {
-                    std::regex ws_re(SEPARATOR_ITEM);
-                    string line = *i;
-                    string result = "";
-            
-                    std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
-            
-                    int idx = 0;
-                    string addr = *item_i;
-                    end_address = bytes_to_int(addr) - 1;
-                } else {
-                    end_address = (int) (*this->_file).tellg() - 1;
-                }
-                return result;
-            }
+            idx = 0;
+            items_line.clear();
+            items_line.push_back("");
         }
+
+        if (buff_item.size() == sep_item.size()) {
+            buff_item.erase(0,1);
+        }
+
+        if (buff_line.size() == sizeof(SEPARATOR_LINE)/sizeof(char)) {
+            buff_line.erase(0,1);            
+        }
+
     }
+    // (*this->_file).seekg(0);
+    // string line;
+    // bool found = false;
+    // const string s((istreambuf_iterator<char>((*this->_file))), istreambuf_iterator<char>());
+    
+    // std::regex ws_re(SEPARATOR_LINE);
+    // std::sregex_token_iterator end;
+
+    // for (std::sregex_token_iterator i(s.begin(), s.end(), ws_re, -1); i != end; ++i) {
+        
+    //     std::regex ws_re(SEPARATOR_ITEM);
+    //     string line = *i;
+    //     bool find_in_line = false;
+    //     string result = "";
+
+    //     std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
+
+    //     if (index <= distance(item_i, end)) {
+    //         int idx = 0;
+    //         string addr = *item_i;
+    //         int addr_value = bytes_to_int(addr);
+    //         ++item_i;
+    //         result = to_string(addr_value) + " | ";
+    //         for (; item_i != end; ++item_i) {
+    //             if ((!type[idx].compare("STR")) || (!type[idx].compare("BIN"))){
+    //                 string input = *item_i;
+    //                 if (!value.compare(input)) {
+    //                     find_in_line = true;
+    //                 }
+    //                 result += input + " | ";
+    //             } else if(!type[idx].compare("INT")){
+    //                 int entry = 0;
+    //                 int multiplier = 0;
+    //                 string a = (*item_i);
+    //                 for (auto c: a) {
+    //                     entry = int(entry | (unsigned char)(c) << multiplier);
+    //                     multiplier += 8;
+    //                 }
+    //                 if (!value.compare(to_string(entry))) {
+    //                     find_in_line = true;
+    //                 }
+    //                 result += to_string(entry) + " | ";
+    //             } else if(!type[idx].compare("FLT")){
+    //                 // m=stof(splitted_input[index]);
+    //             }
+    //             idx++;
+    //         }
+
+    //         vector<int>::iterator it = find(deleted.begin(), deleted.end(), addr_value);
+    //         if (find_in_line && it == deleted.end()) {
+    //             ++i;
+    //             initial_address = addr_value;
+    //             if (i != end) {
+    //                 std::regex ws_re(SEPARATOR_ITEM);
+    //                 string line = *i;
+    //                 string result = "";
+            
+    //                 std::sregex_token_iterator item_i(line.begin(), line.end(), ws_re, -1);
+            
+    //                 int idx = 0;
+    //                 string addr = *item_i;
+    //                 end_address = bytes_to_int(addr) - 1;
+    //             } else {
+    //                 end_address = (int) (*this->_file).tellg() - 1;
+    //             }
+    //             return result;
+    //         }
+    //     }
+    // }
 
     return "";
 }
@@ -452,12 +544,9 @@ vector<string> metafile::find_many_binary(int index, string value, vector<string
                 if (!value.compare(to_string(entry))) {
                     results.push_back(to_string(addr));
                 }
-                cout << entry << endl;
             } else if(!type[index].compare("FLT")){
                 // m=stof(splitted_input[index]);
             }
-
-            cout << endl;
 
             idx = 0;
             items_line.clear();
@@ -556,7 +645,7 @@ vector<string> metafile::find_many_binary(int index, string value, vector<string
     //     }
 
     // }
-
+ 
     return results;
 }
 
@@ -604,8 +693,6 @@ bool metafile::index_entries(int index, chunk tree, vector<int> deleted){
         }
 
     }
-
-    tree.show();
 
     return true;
 }
@@ -672,7 +759,6 @@ bool metafile::index_entries_hash(int index, string fl, vector<int> deleted){
             
             bool found_addr = false;
             int counter = 0;
-            cout << entry << endl;
 
             ifstream verification(fl, ios_base::binary);
             verification.seekg(hash_fn(entry)*(strlen(beginner)+sizeof(long int)*2));
@@ -708,7 +794,8 @@ bool metafile::index_entries_hash(int index, string fl, vector<int> deleted){
             ifstream in(fl, std::ifstream::ate | std::ifstream::binary);
             long int file_size = in.tellg();
             in.close(); 
-            if (hash_fn(entry+counter)*(strlen(beginner)+sizeof(long int)*2) >= file_size) {
+
+            if (hash_fn(entry+counter)*(strlen(beginner)+sizeof(long int)*2) >= file_size || file_size == -1) {
 
                 fstream insertion(fl, fstream::binary | fstream::out | fstream::app);
                 string bff(beginner);
@@ -721,14 +808,19 @@ bool metafile::index_entries_hash(int index, string fl, vector<int> deleted){
                 test_indx++;
                 insertion.close();
             } else {
-                fstream insertion(fl, fstream::binary | fstream::out);
+
+                FILE *f = fopen(fl.c_str(), "r+b");
+                fseek(f, hash_fn(entry+counter)*(strlen(beginner)+sizeof(long int)*2), SEEK_SET);
+                
                 string bff(beginner);
-                insertion.seekp(hash_fn(entry+counter)*(strlen(beginner)+sizeof(long int)*2));
-                insertion.write( bff.c_str(), bff.size());
-                insertion.write( (char*) &entry, sizeof(entry));
-                insertion.write( (char*) &add, sizeof(add));
+                
+                fputs( bff.c_str(), f);
+                fwrite( (char*) &entry, sizeof(char), sizeof(entry), f);
+                fwrite( (char*) &add, sizeof(char), sizeof(add), f);
+                
                 test_indx++;
-                insertion.close();
+
+                fclose( f );
 
             }
 
@@ -750,7 +842,7 @@ bool metafile::index_entries_hash(int index, string fl, vector<int> deleted){
     return true;
 }
 
-long int metafile::find_hash(int key, string fl, vector<tuple<int, int>> deleted){ 
+long int metafile::find_hash(int key, string fl, vector<tuple<int, int>> deleted, long int &initial, long int &final){ 
     
     ifstream verification(fl, ios_base::binary);
     hash<int> hash_fn;
@@ -765,7 +857,6 @@ long int metafile::find_hash(int key, string fl, vector<tuple<int, int>> deleted
 
         size_t pos = hash_fn(key+counter)*(strlen(beginner)+sizeof(long int)*2);
         verification.seekg(pos);
-        cout << pos << endl;
         
         char buffer[strlen(beginner) + 1] = "randominfo";
         verification.read (buffer,sep.size());
@@ -778,9 +869,6 @@ long int metafile::find_hash(int key, string fl, vector<tuple<int, int>> deleted
         verification.read((char*)&_add, sizeof(long int));
         long int entry = char_to_int(_entry);
         long int add = char_to_int(_add);
-        
-        cout << buffer << " " << entry << " " << add << endl; 
-        
         if (!bff.compare(beginner)) {
             if (entry == key) return add;
             counter++;

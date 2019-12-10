@@ -17,34 +17,34 @@ int registry_worker::BR(vector<string> args, table tbl)
 
     string main_result = "";
     if (!args[1].compare("N")) { //busca por todas as ocorrências na tabela
-        main_result = "Registros da tabela " + args[0] + " com o critério " + args[3] + "\n\n";
+        // main_result = "Registros da tabela " + args[0] + " com o critério " + args[3] + "\n\n";
         vector<string> result;
         vector<int> inital_address, final_address;
         result = tbl.query_many(args[3], inital_address, final_address);
+        cout << "BR = " << result.size() << endl;
         if (result.empty()) {
-            main_result += "Nenhum registro encontrado\n\n";
+            // main_result += "Nenhum registro encontrado\n\n";
         }
         else {   
-            main_result += " registros encontrados:\n\n";
+            // main_result += " registros encontrados:\n\n";
             int idx = 0;
             for (vector<string>::iterator it = result.begin(); it != result.end(); it++) {
                 main_result += *it + "\n\n";
-                this->initial_addresses[args[2]] = inital_address[idx];
-                this->final_addresses[args[2]] = final_address[idx];
+                // this->initial_addresses[args[2]] = inital_address[idx];
+                // this->final_addresses[args[2]] = final_address[idx];
             }
         }
     }
     else if(!args[1].compare("U")) { //busca pela primeira ocorrência na tabela
-        main_result = "Busca em " + args[2] + " pelo critério " + args[3] + "\n\n";
-        int inital_address, final_address;
+        long int inital_address, final_address;
         string result;
         result = tbl.query_one(args[3], inital_address, final_address);
+        cout << "BR = " << to_string(result.compare("") ? 1 : 0) << endl;
         if (result.empty()) {
-            main_result += "Nenhum registro encontrado\n\n";;
         } else {
             this->initial_addresses[args[2]] = inital_address;
             this->final_addresses[args[2]] = final_address;
-            main_result += "Registro encontrado:\n\n" + result;
+            main_result += result;
         }
     }
     else{

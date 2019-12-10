@@ -104,13 +104,13 @@ bool chunk::create_addr_chunk(long int parent_addr) {
     return true;
 }
 
-void show_tree_r(chunk tree) {
+void show_tree_r(chunk tree, long int level = 0) {
 
     vector <long int> trees_to_visit;
     int i;
-    for (i = 0; i < tree.n; i++) {
-        cout << tree.chunk_values[i] << " | ";
-        if (tree.child_addresses[i] != -1) trees_to_visit.push_back(tree.child_addresses[i]);
+    for (i = 0; i < tree.max_n; i++) {
+        cout << tree.chunk_values[i] << "@" << tree.child_addresses[i] << " | ";
+        if (tree.child_addresses[i] != -1 && tree.child_addresses[i] != 0) trees_to_visit.push_back(tree.child_addresses[i]);
     }
 
     if (tree.child_addresses[i] != -1) trees_to_visit.push_back(tree.child_addresses[i]);
@@ -118,8 +118,11 @@ void show_tree_r(chunk tree) {
     cout << endl;
 
     for (auto tr: trees_to_visit) {
+        cout << tr << endl;
         tree.move_to_address(tr);
-        show_tree_r(tree);
+        if (level < 4) {
+            show_tree_r(tree, level+1);
+        }
     }
 }
 
@@ -207,98 +210,23 @@ bool chunk::update() {
 }
 
 bool chunk::load_child_chunk(int idx) {
-    this->isleaf = 1;
-    this->isroot = 0;
-    this->n = 0;
 
     if (child_addresses[idx] == -1) {
         
-        ofstream file;
-        
-        file.open("meta/" + tree_name + ".meta", fstream::binary | fstream::out | fstream::in);
-        file.seekp(0,file.end);
-        long len = file.tellp();
+        long addr = this->address; 
+        this->create_addr_chunk(this->address);
 
-        child_addresses[idx] = len;
-        file.close();
+        this->parent_address = addr;
+        long child_addr = this->address;
         this->update();
-        
-        file.open("meta/" + tree_name + ".meta", fstream::binary | fstream::out | fstream::in);
-        file.seekp(len);
+        this->load_addr_chunk(addr);
+        this->child_addresses[idx] = child_addr;
+        this->update();
 
-        file.write((char *) &(this->child_addresses[idx]), sizeof(this->child_addresses[idx]));
-        this->parent_address = this->address;
-
-        this->address = child_addresses[idx];
-        file.write((char *) &(this->parent_address), sizeof(this->parent_address));
-
-        child_addresses.clear();
-        chunk_values.clear();
-        refs.clear();
-        long int a = -1;
-        int i;
-        for (i = 0; i < this->max_n; i++) {
-            file.write((char *) &a, sizeof(a));
-            child_addresses.push_back(-1);
-            file.write((char *) &a, sizeof(a));
-            chunk_values.push_back(-1);
-            file.write((char *) &a, sizeof(a));
-            refs.push_back(-1);
-            if (this->refs[i] != -1) {
-                this->n++;
-            }
-            if (this->child_addresses[i] != -1) {
-                this->isleaf = 0;
-            }
-        } 
-        file.write((char *) &a, sizeof(a));
-        child_addresses.push_back(-1);
-        if (this->child_addresses[i] != -1) {
-            this->isleaf = 0;
-        }
-   
-        file.close();
+        this->load_addr_chunk(child_addr);
 
     } else {
-        this->isleaf = 1;
-        ifstream file;
-        this->update();
-        file.open("meta/" + tree_name + ".meta", fstream::binary | fstream::in);
-
-        file.seekg(child_addresses[idx]);
-
-        file.read((char *) &(this->address), sizeof(long int));
-        file.read((char *) &(this->parent_address), sizeof(long int));
-        
-        child_addresses.clear();
-        chunk_values.clear();
-        refs.clear();
-        
-        int i;
-        long int buf;
-
-        for (i = 0; i < this->max_n; i++) {
-            file.read((char *) &(buf), sizeof(long int));
-            child_addresses.push_back(buf);
-            file.read((char *) &(buf), sizeof(long int));
-            chunk_values.push_back(buf);
-            file.read((char *) &(buf), sizeof(long int));
-            refs.push_back(buf);
-            if (this->refs[i] != -1) {
-                this->n++;
-            }
-
-            if (this->child_addresses[i] != -1) {
-                this->isleaf = 0;
-            }
-        } 
-        file.read((char *) &buf, sizeof(buf));
-        child_addresses.push_back(buf);
-        
-        if (this->child_addresses[i] != -1) {
-            this->isleaf = 0;
-        }
-        file.close();
+        this->load_addr_chunk(this->child_addresses[idx]);
     }
 
     return true;
@@ -321,9 +249,7 @@ chunk::chunk(string tree_name)
         this->root_address = 0;
         init_chunk(-1);
     } else {
-        while (this->parent_address != -1) {
-            load_addr_chunk(this->parent_address, true);
-        }
+        load_addr_chunk(this->parent_address, true);
     } 
 
     this->chunksize = sizeof(long int) * (3*this->max_n + 3); //val + refs + addrs + parent 
@@ -340,7 +266,11 @@ bool chunk::is_root() {
 
 long int chunk::insert(long int & root_addr, long int k, long int ref)
 {
+    // cout << k << endl;
+    show_tree(*this);
+    cout << "TREE " << root_addr << " root addr " << k << endl; 
     if (root_addr != -1) {
+
         long int p = this->searchforleaf(k, root_addr, -1, 0);
         long int q = -1;
         int e = k;
@@ -351,13 +281,18 @@ long int chunk::insert(long int & root_addr, long int k, long int ref)
 
         for (int e = k; p!=-1; p = this->parent_address) {
             if (this->n == 0) {
+
+                cout << "nothing to see here" << endl;
                 this->chunk_values[0] = e;
                 this->refs[0] = ref;
+                
                 this->update();
                 return root_addr;
             }
             // If number of filled keys is less than maximum
             if (this->n < this->max_n - 1) {
+
+                cout << "adding to same" << endl;
                 int i;
                 for (i = 0; i < this->n; i++) {
                     if (this->chunk_values[i] > e) {
@@ -371,6 +306,8 @@ long int chunk::insert(long int & root_addr, long int k, long int ref)
                 this->chunk_values[i] = e;
                 this->refs[i] = ref;
                 this->n = this->n + 1;
+                this->update();
+
                 return root_addr;
             }
 
@@ -385,7 +322,9 @@ long int chunk::insert(long int & root_addr, long int k, long int ref)
             // cout << this->max_n << " " << this->n << " " << parent->n << endl; 
             // show_tree(*this);
             // cout << ((this->n == this->max_n - 1) ? 1 : 0) << ((parent!=NULL) ? 1 : 0) << ((parent->n < this->max_n) ? 1 : 0) << endl;  
-            if (this->n == this->max_n - 1 && parent!=NULL && parent->n < this->max_n) { /////////// essa linha pode ser problemativa
+            if (false && this->n == this->max_n - 1 && parent!=NULL && parent->n < this->max_n) { /////////// essa linha pode ser problemativa
+
+                cout << "splitting" << endl;
                 int m;
 
                 for (int i = 0; i < parent->n; i++) {
@@ -395,6 +334,7 @@ long int chunk::insert(long int & root_addr, long int k, long int ref)
                         break;
                     }
                 }
+
                 // If right sibling is possible
                 if (m + 1 <= this->max_n - 1)
                 {
@@ -531,6 +471,44 @@ long int chunk::insert(long int & root_addr, long int k, long int ref)
                 }
             }
 
+            // If number of filled keys is equal to maximum
+            if (this->n >= this->max_n - 1) {
+                int i;
+                for (i = 0; i < this->n; i++) {
+                    if (this->chunk_values[i] > e) {
+                        this->load_child_chunk(i);
+                        long int addr = this->address;
+                        this->load_addr_chunk(this->root_address);
+                        this->child_addresses[i] = addr;
+                        this->update();
+
+                        this->load_child_chunk(i);
+                        this->chunk_values[0] = e;
+                        this->refs[0] = ref;
+                        this->parent_address = root_addr;
+                        this->update();
+
+                        return root_addr;
+                    }
+                }
+
+                this->load_child_chunk(i);
+                long int addr = this->address;
+                this->load_addr_chunk(this->root_address);
+                this->child_addresses[i] = addr;
+                this->update();
+
+                this->load_child_chunk(i);
+                this->chunk_values[0] = e;
+                this->refs[0] = ref;
+                this->parent_address = root_addr;
+
+                this->update();
+
+                return root_addr;
+
+            }
+
             load_addr_chunk(p);
         }
 
@@ -546,7 +524,7 @@ long int chunk::insert(long int & root_addr, long int k, long int ref)
 
 }
 
-long int chunk::query_address(int k, long int parent, int chindex, vector<tuple<int,int>> deleted){
+long int chunk::query_address(int k, long int parent, int chindex, vector<tuple<int,int>> deleted, long int & initial, long int & final){
 
     long int root = 0;
     int result = -1;
@@ -557,14 +535,21 @@ long int chunk::query_address(int k, long int parent, int chindex, vector<tuple<
 }
 // // bool mode_to_addres
 
-long int chunk::searchforleaf(int k, long int & root, long int parent, int chindex) {
+long int chunk::searchforleaf(int k, long int & root, long int parent, int chindex, bool biggest) {
 
     // If the passed root is a leaf node, then
     if (root != -1) {
         // k can be inserted in this node itself
+        cout << "root " << root << endl;
+        show_tree(*this);
         this->load_addr_chunk(root);
-        if (this->isleaf == 1)
-            return root;
+        show_tree(*this);
+        cout << this->n << " " << this->max_n << endl;
+
+        if (this->n < this->max_n - 1) {
+            cout << this->address;
+            return this->address;
+        }
 
         // If the passed root is not a leaf node,
         // implying there are one or more children
@@ -574,27 +559,49 @@ long int chunk::searchforleaf(int k, long int & root, long int parent, int chind
             /*If passed root's initial key is itself g
             reater than the element to be inserted,
             we need to insert to a new leaf left of the root*/
-            if (k < chunk_values[0])
+            if (k < chunk_values[0]) {
                 root = searchforleaf(k, child_addresses[0], root, 0);
 
+                return root;
+            }
             else {
+                
+                cout << "searching" << endl;
                 // Find the first key whose value is greater
                 // than the insertion value
                 // and insert into child of that key
-                for (i = 0; i < this->max_n; i++)
-                    if (chunk_values[i] > k)
+                for (i = 0; i < this->max_n; i++) {
+                    if (chunk_values[i] > k) {
+                        cout << "bigger " << chunk_values[i] << " at " << child_addresses[i] << " " << k << " " << parent << " " << root << " " << i << endl; 
+                        while(chunk_values[i] == 9864284 && child_addresses[i] == -1) {}
                         root = searchforleaf(k, child_addresses[i], root, i);
+
+                        return root;
+                    }
+                }
 
                 // If all the keys are less than the insertion
                 // key value, insert to the right of last key
-                if (chunk_values[i - 1] < k)
+                if (chunk_values[i - 1] < k) {
+                    cout << chunk_values[i - 1] << endl;
                     root = searchforleaf(k, child_addresses[i], root, i);
+
+                    return root;
+                }
+
             }
+            return root;
         }
     } else {
+        load_addr_chunk(parent);
+        show_tree(*this);
+        cout << parent << " " << chindex << endl;
         load_child_chunk(chindex);
+        show_tree(*this);
+        while (parent == 456) {}
         return this->address;
     }
+
 
 }
 
@@ -603,18 +610,21 @@ long int chunk::searchforleaf(int k, long int & root, long int parent, int chind
 
 long int chunk::searchforvalue(int k, long int & root, long int parent, int chindex, int &result) {
 
+    cout << "searching for leaf" << endl;
     // If the passed root is a leaf node, then
     if (root != -1) {
         // k can be inserted in this node itself
         this->load_addr_chunk(root);
-        if (this->isleaf == 1) {
+        if (this->n < this->max_n) {
             for (int i = 0; i < this->max_n; i++) {
-                if (k == chunk_values[i]) result = refs[i];
-                if (chunk_values[i] > k)
-                root = searchforleaf(k, child_addresses[i], root, i);
+                cout << chunk_values[i] << " " << k << endl;
+                if (k == chunk_values[i]) {
+                    result = refs[i];
+                    return result;
+                }
+                if (chunk_values[i] > k) root = searchforleaf(k, child_addresses[i], root, i);
             }
         }
-
         // If the passed root is not a leaf node,
         // implying there are one or more children
         else {
@@ -625,7 +635,6 @@ long int chunk::searchforvalue(int k, long int & root, long int parent, int chin
             we need to insert to a new leaf left of the root*/
             if (k < chunk_values[0])
                 root = searchforleaf(k, child_addresses[0], root, 0);
-
             else {
                 // Find the first key whose value is greater
                 // than the insertion value

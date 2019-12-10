@@ -25,8 +25,6 @@ private:
     metafile * _file;
     int isroot;
     long int root_address;
-    // Counts the number of filled keys in a chunk
-    int max_n;
     // Keeps track of the parent chunk
     bool read_chunk();
     bool create_addr_chunk(long int parent_addr);
@@ -35,6 +33,8 @@ private:
     bool load_child_chunk(int idx);
 public:
 
+    // Counts the number of filled keys in a chunk
+    int max_n;
     void show() { show_tree(*this); }
     // A utility function to insert a new key in the subtree rooted with 
     // this node. The assumption is, the node must be non-full when this 
@@ -60,7 +60,7 @@ public:
     long int insert(long int & root_addr, long int value, long int ref);
     chunk(string tree_name);
     bool load_addr_chunk(long int addr, bool no_update=false);
-    long int query_address(int k, long int, int, vector<tuple<int, int>>);
+    long int query_address(int k, long int, int, vector<tuple<int, int>>, long int & initial, long int & final);
     bool is_root();
     bool move_to_address(long int idx) { return this->load_addr_chunk(idx); };
     bool move_to_root();
@@ -69,7 +69,7 @@ public:
     long int get_parent();
     vector<long int> get_child();
     int is_leaf();
-    long int searchforleaf(int k, long int &, long int, int);
+    long int searchforleaf(int k, long int &, long int, int, bool biggest = false);
     long int searchforvalue(int k, long int &, long int, int, int&);
 
 };

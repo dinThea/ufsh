@@ -32,7 +32,7 @@ public:
     bool invalidate_line(int adress, int num_bytes);
     vector<string> get_fields();
     vector<string> get_type_fields();
-    string query_one(string query, int & inital_address, int & final_address); //busca pela primeira ocorrência na tabela
+    string query_one(string query, long int & inital_address, long int & final_address); //busca pela primeira ocorrência na tabela
     vector<string> query_many(string query, vector<int> & inital_address, vector<int> & final_address); //busca por todas as ocorrências na tabela
     string get_name();
     bool fail();

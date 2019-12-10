@@ -44,7 +44,9 @@ vector<string> interpreter::read() { //lê comando do terminal
             if (couter < 3) cout << input << "" << endl;
             couter++;
             if ((*this->_file).eof()) {
+
                 this->eof = true;
+                return splitted_input;
             }
         }
     } while (!input.compare(""));
@@ -119,8 +121,9 @@ void interpreter::exec() { //chama os métodos correspondentes
     vector<string> input;
     do {
         input = read();
+        if (this->eof) break;
         // cout << input[0] << endl;
-    } while (run_all(input) && !this->eof);
+    } while (run_all(input));
 
 }
 

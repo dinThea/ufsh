@@ -21,7 +21,7 @@ private:
 
     ifstream *_file;
     string _input;
-    int eof;
+    bool eof;
 };
 
 #endif	/* interpreter_H */
